@@ -91,15 +91,15 @@ app.get('/login', loginToken, function (err, req, res, next) {
 app.post('/login', (req, res) => {
   if (!req.body || !req.body.email) return res.status(400).send('email is required')
 
-  const email = req.body.email
-  const isValidEmail = /.+@.+\..+/.test(email)
+  const inputEmail = req.body.email
+  const isValidEmail = /.+@.+\..+/.test(inputEmail)
 
   if (!isValidEmail) return res.status(422).send('email is malformed')
 
   waterfall([
     function findExistingUser (cb) {
       console.debug('findExistingUser')
-      user.findUser({email}, function (err, user) {
+      user.findUser({email: inputEmail}, function (err, user) {
         return cb(err, {user})
       })
     },
