@@ -109,7 +109,7 @@ app.post('/login', (req, res) => {
         return cb(err, {user, token})
       })
     },
-    function sendLoginEmail ({user, token}, cb) {
+    function sendLoginEmailToUser ({user, token}, cb) {
       Email.sendLoginEmail({user, token}, (err) => {
         return cb(err, {user})
       })
