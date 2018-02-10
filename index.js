@@ -38,8 +38,10 @@ process.on('uncaughtException', function onUncaughtException (err) {
 const express = require('express')
 const expressJwt = require('express-jwt')
 const waterfall = require('run-waterfall')
+
 const user = require('./app/user')
 const token = require('./app/token')
+const Email = require('./app/email')
 
 const app = express()
 module.exports = app
@@ -96,15 +98,20 @@ app.post('/login', (req, res) => {
 
   waterfall([
     function findExistingUser (cb) {
-      console.log('findExistingUser')
-      user.findUserByEmail(email, function (err, user) {
+      console.debug('findExistingUser')
+      user.findUser({email}, function (err, user) {
         return cb(err, {user})
       })
     },
     function createLoginTokenForUser ({user}, cb) {
-      console.log('createLoginTokenForUser')
-      token.createLoginToken(user.email, (err, token) => {
+      console.debug('createLoginTokenForUser')
+      token.createLoginToken({email: user.email}, (err, token) => {
         return cb(err, {user, token})
+      })
+    },
+    function sendLoginEmail ({user, token}, cb) {
+      Email.sendLoginEmail({user, token}, (err) => {
+        return cb(err, {user})
       })
     }
   ], function (err, {user}) {

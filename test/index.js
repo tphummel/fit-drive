@@ -64,28 +64,36 @@ tap.test('GET /login', function (t) {
 
 tap.test('POST /login (existing user)', function (t) {
   const spies = {
-    findUserByEmail: sinon.spy((email, cb) => {
+    findUser: sinon.spy(({email}, cb) => {
       return setImmediate(cb, null, {
         email: email
       })
     }),
     createUser: sinon.spy(),
-    createLoginToken: sinon.spy((email, cb) => {
+    createLoginToken: sinon.spy(({email}, cb) => {
+      return setImmediate(cb, null, {})
+    }),
+    sendLoginEmail: sinon.spy(({email}, cb) => {
       return setImmediate(cb, null, {})
     })
   }
 
   const lib = proxyquire('..', {
     './app/user': {
-      findUserByEmail: spies.findUserByEmail,
+      findUser: spies.findUser,
       createUser: spies.createUser
     },
     './app/token': {
       createLoginToken: spies.createLoginToken
+    },
+    './app/email': {
+      sendLoginEmail: spies.sendLoginEmail
     }
   })
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
+
+    const email = 'tphummel@gmail.com'
 
     get.post({
       url: url.format({
@@ -95,15 +103,17 @@ tap.test('POST /login (existing user)', function (t) {
         port: port
       }),
       form: {
-        email: 'tphummel@gmail.com'
+        email: email
       }
     }, (err, res) => {
       t.ifErr(err)
 
-      // generates token
-      // calls email send
-      t.equal(findUserByEmailSpy.callCount, 1)
-      t.equal(createUserSpy.callCount, 0)
+      t.equal(spies.findUser.callCount, 1)
+      t.ok(spies.findUser.calledWith({email}))
+      t.equal(spies.createLoginToken.callCount, 1)
+      t.ok(spies.createLoginToken.calledWith({email}))
+      t.equal(spies.createUser.callCount, 0)
+      t.equal(spies.sendLoginEmail.callCount, 1)
 
       t.equal(res.statusCode, 202)
 

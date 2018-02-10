@@ -1,10 +1,10 @@
 'use strict'
 
-function findUserByEmail (email, cb) { return setImmediate(cb) }
+function findUser ({email}, cb) { return setImmediate(cb, null) }
 
-function createUser (email, cb) { return setImmediate(cb) }
+function createUser ({email}, cb) { return setImmediate(cb, null) }
 
 module.exports = {
-  findUserByEmail,
+  findUser,
   createUser
 }
