@@ -17,21 +17,17 @@ if (process.env.NODE_ENV === 'production') {
   console.log = logger.info
 
   logLevels.forEach((level) => { console[level] = logger[level] })
-} else if (process.env.NODE_ENV === 'test') {
-  // bole.output({
-  //   level: 'debug',
-  //   stream: process.stdout
-  // })
-  // const logger = bole(pkg.name)
-  //
-  // console.log = logger.info
-  //
-  // logLevels.forEach((level) => { console[level] = logger[level] })
-} else if (process.env.NODE_ENV === 'development') {
+} else if (['test', 'development'].includes(process.env.NODE_ENV)) {
   logLevels.forEach((level) => {
     if (level === 'error') return
     console[level] = console.log
   })
+} else {
+  console.error(`
+    process.env.NODE_ENV is set to an invalid value: ${process.env.NODE_ENV}
+    it must be one of: 'production', 'development', or 'test'
+  `)
+  process.exit(1)
 }
 
 process.on('uncaughtException', function onUncaughtException (err) {
@@ -50,10 +46,13 @@ module.exports = app
 
 app.use(require('body-parser').urlencoded({extended: true}))
 app.use(require('cookie-parser')())
-app.use(function requestLogger (req, res, next) {
-  console.info(`${req.method} ${req.path}`)
-  return next()
-})
+
+if (process.env.NODE_ENV !== 'test') {
+  app.use(function requestLogger (req, res, next) {
+    console.info(`${req.method} ${req.path}`)
+    return next()
+  })
+}
 
 const loginToken = expressJwt({
   secret: process.env.LOGIN_JWT_SECRET || 'login-token-secret',
