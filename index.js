@@ -43,6 +43,7 @@ const express = require('express')
 const expressJwt = require('express-jwt')
 const waterfall = require('run-waterfall')
 const user = require('./app/user')
+const token = require('./app/token')
 
 const app = express()
 module.exports = app
@@ -95,12 +96,19 @@ app.post('/login', (req, res) => {
   if (!isValidEmail) return res.status(422).send('email is malformed')
 
   waterfall([
-    function (cb) {
+    function findExistingUser (cb) {
+      console.log('findExistingUser')
       user.findUserByEmail(email, function (err, user) {
-        return cb(err, user)
+        return cb(err, {user})
+      })
+    },
+    function createLoginTokenForUser ({user}, cb) {
+      console.log('createLoginTokenForUser')
+      token.createLoginToken(user.email, (err, token) => {
+        return cb(err, {user, token})
       })
     }
-  ], function (err, user) {
+  ], function (err, {user}) {
     if (err) return res.status(500).send(err)
     if (user) return res.status(202).send('user found')
     // create user if not exists

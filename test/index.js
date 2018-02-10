@@ -63,18 +63,25 @@ tap.test('GET /login', function (t) {
 })
 
 tap.test('POST /login (existing user)', function (t) {
-  const findUserByEmailSpy = sinon.spy((email, cb) => {
-    return setImmediate(cb, null, {
-      id: 101,
-      email: email
+  const spies = {
+    findUserByEmail: sinon.spy((email, cb) => {
+      return setImmediate(cb, null, {
+        email: email
+      })
+    }),
+    createUser: sinon.spy(),
+    createLoginToken: sinon.spy((email, cb) => {
+      return setImmediate(cb, null, {})
     })
-  })
-  const createUserSpy = sinon.spy()
+  }
 
   const lib = proxyquire('..', {
     './app/user': {
-      findUserByEmail: findUserByEmailSpy,
-      createUser: createUserSpy
+      findUserByEmail: spies.findUserByEmail,
+      createUser: spies.createUser
+    },
+    './app/token': {
+      createLoginToken: spies.createLoginToken
     }
   })
   const server = lib.start(lib.app, port, (err) => {
