@@ -39,7 +39,7 @@ const express = require('express')
 const expressJwt = require('express-jwt')
 const waterfall = require('run-waterfall')
 
-const user = require('./app/user')
+const User = require('./app/user')
 const token = require('./app/token')
 const Email = require('./app/email')
 
@@ -99,7 +99,14 @@ app.post('/login', (req, res) => {
   waterfall([
     function findExistingUser (cb) {
       console.debug('findExistingUser')
-      user.findUser({email: inputEmail}, function (err, user) {
+      User.findUser({email: inputEmail}, function (err, user) {
+        return cb(err, {user})
+      })
+    },
+    function createUserIfNotFound ({user}, cb) {
+      if (user) return setImmediate(cb, null, {user})
+
+      User.createUser({email: inputEmail}, function (err, user) {
         return cb(err, {user})
       })
     },

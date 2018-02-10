@@ -125,7 +125,71 @@ tap.test('POST /login (existing user)', function (t) {
   })
 })
 
-// post /login new user
+tap.test('POST /login (new user)', function (t) {
+  const spies = {
+    findUser: sinon.spy(({email}, cb) => {
+      return setImmediate(cb, null, null)
+    }),
+    createUser: sinon.spy(({email}, cb) => {
+      return setImmediate(cb, null, {
+        email: email
+      })
+    }),
+    createLoginToken: sinon.spy(({email}, cb) => {
+      return setImmediate(cb, null, {})
+    }),
+    sendLoginEmail: sinon.spy(({email}, cb) => {
+      return setImmediate(cb, null, {})
+    })
+  }
+
+  const lib = proxyquire('..', {
+    './app/user': {
+      findUser: spies.findUser,
+      createUser: spies.createUser
+    },
+    './app/token': {
+      createLoginToken: spies.createLoginToken
+    },
+    './app/email': {
+      sendLoginEmail: spies.sendLoginEmail
+    }
+  })
+  const server = lib.start(lib.app, port, (err) => {
+    t.ifErr(err)
+
+    const email = 'tphummel@gmail.com'
+
+    get.post({
+      url: url.format({
+        protocol: 'http',
+        hostname: 'localhost',
+        pathname: 'login',
+        port: port
+      }),
+      form: {
+        email: email
+      }
+    }, (err, res) => {
+      t.ifErr(err)
+
+      t.equal(spies.findUser.callCount, 1)
+      t.ok(spies.findUser.calledWith({email}))
+      t.equal(spies.createUser.callCount, 1)
+      t.ok(spies.createUser.calledWith({email}))
+      t.equal(spies.createLoginToken.callCount, 1)
+      t.ok(spies.createLoginToken.calledWith({email}))
+      t.equal(spies.sendLoginEmail.callCount, 1)
+
+      t.equal(res.statusCode, 202)
+
+      server.close((err) => {
+        t.ifErr(err)
+        t.end()
+      })
+    })
+  })
+})
 
 tap.test('POST /login (missing email)', function (t) {
   const lib = proxyquire('..', {})
