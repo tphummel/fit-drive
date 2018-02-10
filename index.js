@@ -116,9 +116,7 @@ app.post('/login', (req, res) => {
     }
   ], function (err, {user}) {
     if (err) return res.status(500).send(err)
-    if (user) return res.status(202).send('user found')
-    // create user if not exists
-    // send email with magic link
+    if (user) return res.status(202).send('login request received')
     return res.status(202).send('/login')
   })
 })
