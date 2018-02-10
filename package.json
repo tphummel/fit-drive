@@ -1,0 +1,45 @@
+{
+  "name": "@tphummel/node-app",
+  "version": "1.0.0",
+  "description": "node starter app boilerplate",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "fix": "standard --fix",
+    "test": "standard && NODE_ENV=test LOGIN_JWT_SECRET=testsecret tap --reporter classic test/*.js --coverage-report=text-summary"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:tphummel/node-app.git"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Tom Hummel",
+    "email": "tphummel@gmail.com",
+    "url": "https://tomhummel.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tphummel/node-app/issues"
+  },
+  "homepage": "https://github.com/tphummel/node-app",
+  "devDependencies": {
+    "cookie": "^0.3.1",
+    "proxyquire": "^1.8.0",
+    "simple-get": "^2.7.0",
+    "sinon": "^4.2.2",
+    "standard": "latest",
+    "tap": "latest"
+  },
+  "dependencies": {
+    "body-parser": "1.18.2",
+    "bole": "3.0.2",
+    "cookie-parser": "1.4.3",
+    "express": "4.16.2",
+    "express-jwt": "5.3.0",
+    "jsonwebtoken": "8.1.1",
+    "run-waterfall": "^1.1.3"
+  }
+}
