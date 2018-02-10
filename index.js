@@ -41,7 +41,7 @@ process.on('uncaughtException', function onUncaughtException (err) {
 
 const express = require('express')
 const expressJwt = require('express-jwt')
-// const waterfall = require('run-waterfall')
+const waterfall = require('run-waterfall')
 const user = require('./app/user')
 
 const app = express()
@@ -94,10 +94,13 @@ app.post('/login', (req, res) => {
 
   if (!isValidEmail) return res.status(422).send('email is malformed')
 
-  // lookup user by email in db
-  // waterfall
-
-  user.findUserByEmail(email, (err, user) => {
+  waterfall([
+    function (cb) {
+      user.findUserByEmail(email, function (err, user) {
+        return cb(err, user)
+      })
+    }
+  ], function (err, user) {
     if (err) return res.status(500).send(err)
     if (user) return res.status(202).send('user found')
     // create user if not exists

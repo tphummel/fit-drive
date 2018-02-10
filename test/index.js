@@ -101,7 +101,6 @@ tap.test('POST /login (existing user)', function (t) {
       t.equal(res.statusCode, 202)
 
       server.close((err) => {
-        console.log('end')
         t.ifErr(err)
         t.end()
       })
@@ -133,7 +132,6 @@ tap.test('POST /login (missing email)', function (t) {
       // does not send email
 
       server.close((err) => {
-        console.log('end')
         t.ifErr(err)
         t.end()
       })
