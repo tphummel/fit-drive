@@ -10,6 +10,9 @@ const proxyquire = require('proxyquire').noPreserveCache()
 
 const port = '10001'
 
+process.env.LOGIN_JWT_SECRET = 'loginsecret'
+process.env.SESSION_JWT_SECRET = 'sessionsecret'
+
 // to get to -100, may need to test NODE_ENV logging modes
 // development
 // production
