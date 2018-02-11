@@ -59,7 +59,7 @@ if (process.env.NODE_ENV !== 'test') {
 const loginToken = expressJwt({
   secret: process.env.LOGIN_JWT_SECRET || 'login-token-secret',
   resultProperty: 'loginToken',
-  credentialsRequired: false,
+  credentialsRequired: true,
   getToken: (req) => {
     if (req.query) return req.query.token
     return null
@@ -79,11 +79,12 @@ app.get('/', (req, res) => {
   return res.send('/')
 })
 
-app.get('/login', loginToken, function (err, req, res, next) {
-  if (err) return res.status(401).send(err.name)
-  return next()
-}, (req, res) => {
+app.get('/login', (req, res) => {
   return res.send('/login')
+})
+
+app.get('/login-verify', loginToken, (req, res) => {
+  return res.send('/login-verify')
 })
 
 app.post('/login', (req, res) => {

@@ -255,7 +255,7 @@ tap.test('POST /login (malformed email)', function (t) {
 // GET /login?token=expired
 // GET /login?token=tampered
 
-tap.test('GET /login?token=invalid', function (t) {
+tap.test('GET /login-verify?token=invalid', function (t) {
   const lib = proxyquire('..', {})
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
@@ -264,7 +264,7 @@ tap.test('GET /login?token=invalid', function (t) {
       url: url.format({
         protocol: 'http',
         hostname: 'localhost',
-        pathname: 'login',
+        pathname: 'login-verify',
         port: port,
         query: {
           token: 'invalid'
@@ -283,7 +283,7 @@ tap.test('GET /login?token=invalid', function (t) {
   })
 })
 
-tap.test('GET /login?token=valid', function (t) {
+tap.test('GET /login-verify?token=valid', function (t) {
   const lib = proxyquire('..', {})
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
@@ -292,7 +292,7 @@ tap.test('GET /login?token=valid', function (t) {
       url: url.format({
         protocol: 'http',
         hostname: 'localhost',
-        pathname: 'login',
+        pathname: 'login-verify',
         port: port,
         query: {
           token: jwt.sign({}, process.env.LOGIN_JWT_SECRET)
