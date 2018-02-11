@@ -87,7 +87,7 @@ app.get('/login-verify', loginToken, (req, res) => {
   Token.createSessionToken({email: req.loginToken.email}, (err, token) => {
     if (err) return res.status(500).send(err)
 
-    res.cookie('webAppSession', token)
+    res.cookie('sessionPayload', token)
     return res.status(200).send('/login-verify')
   })
 })

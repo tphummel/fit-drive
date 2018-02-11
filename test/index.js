@@ -5,6 +5,7 @@ const url = require('url')
 const tap = require('tap')
 const get = require('simple-get')
 const jwt = require('jsonwebtoken')
+const cookie = require('cookie')
 const sinon = require('sinon')
 const proxyquire = require('proxyquire').noPreserveCache()
 
@@ -288,7 +289,9 @@ tap.test('GET /login-verify?token=invalid', function (t) {
 tap.test('GET /login-verify?token=valid', function (t) {
   const spies = {
     createSessionToken: sinon.spy(({email}, cb) => {
-      return setImmediate(cb, null, {email})
+      return jwt.sign({
+        email
+      }, process.env.SESSION_JWT_SECRET, {}, cb)
     })
   }
 
@@ -297,6 +300,7 @@ tap.test('GET /login-verify?token=valid', function (t) {
       createSessionToken: spies.createSessionToken
     }
   })
+
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
@@ -317,11 +321,19 @@ tap.test('GET /login-verify?token=valid', function (t) {
 
       t.equal(res.statusCode, 200)
       t.ok(res.headers['set-cookie'][0], 'a cookie was set')
-      t.ok(/^webAppSession/.test(res.headers['set-cookie'][0]))
 
-      server.close((err) => {
+      const expectedCookieNamePattern = /^sessionPayload/
+      t.ok(expectedCookieNamePattern.test(res.headers['set-cookie'][0]))
+
+      const observedCookie = cookie.parse(res.headers['set-cookie'][0])
+
+      jwt.verify(observedCookie.sessionPayload, process.env.SESSION_JWT_SECRET, (err, payload) => {
         t.ifErr(err)
-        t.end()
+
+        server.close((err) => {
+          t.ifErr(err)
+          t.end()
+        })
       })
     })
   })
