@@ -4,6 +4,7 @@ const url = require('url')
 
 const tap = require('tap')
 const get = require('simple-get')
+const http = require('http')
 const jwt = require('jsonwebtoken')
 const cookie = require('cookie')
 const sinon = require('sinon')
@@ -304,28 +305,33 @@ tap.test('GET /login-verify?token=valid', function (t) {
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
-    get.get({
-      url: url.format({
-        protocol: 'http',
-        hostname: 'localhost',
-        pathname: 'login-verify',
-        port: port,
-        query: {
-          token: jwt.sign({
-            email: 'tphummel@gmail.com'
-          }, process.env.LOGIN_JWT_SECRET)
-        }
-      })
-    }, (err, res) => {
+    http.request(url.format({
+      protocol: 'http',
+      hostname: 'localhost',
+      pathname: 'login-verify',
+      port: port,
+      query: {
+        token: jwt.sign({
+          email: 'tphummel@gmail.com'
+        }, process.env.LOGIN_JWT_SECRET)
+      }
+    }), (res) => {
       t.ifErr(err)
 
-      t.equal(res.statusCode, 200)
+      t.equal(res.statusCode, 307)
+      t.equal(res.headers.location, '/home')
+
       t.ok(res.headers['set-cookie'][0], 'a cookie was set')
 
       const expectedCookieNamePattern = /^sessionPayload/
       t.ok(expectedCookieNamePattern.test(res.headers['set-cookie'][0]))
 
-      const observedCookie = cookie.parse(res.headers['set-cookie'][0])
+      let observedCookie
+      try {
+        observedCookie = cookie.parse(res.headers['set-cookie'][0])
+      } catch (e) {
+        t.fail(e)
+      }
 
       jwt.verify(observedCookie.sessionPayload, process.env.SESSION_JWT_SECRET, (err, payload) => {
         t.ifErr(err)
@@ -335,6 +341,6 @@ tap.test('GET /login-verify?token=valid', function (t) {
           t.end()
         })
       })
-    })
+    }).end()
   })
 })

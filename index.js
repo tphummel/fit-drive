@@ -88,7 +88,8 @@ app.get('/login-verify', loginToken, (req, res) => {
     if (err) return res.status(500).send(err)
 
     res.cookie('sessionPayload', token)
-    return res.status(200).send('/login-verify')
+    res.set('Location', '/home')
+    return res.status(307).send('')
   })
 })
 
