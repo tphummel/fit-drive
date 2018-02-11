@@ -102,7 +102,6 @@ app.post('/login', (req, res) => {
 
   waterfall([
     function findExistingUser (cb) {
-      console.debug('findExistingUser')
       User.findUser({email: inputEmail}, function (err, user) {
         return cb(err, {user})
       })
@@ -115,7 +114,6 @@ app.post('/login', (req, res) => {
       })
     },
     function createLoginTokenForUser ({user}, cb) {
-      console.debug('createLoginTokenForUser')
       Token.createLoginToken({email: user.email}, (err, token) => {
         return cb(err, {user, token})
       })
