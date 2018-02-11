@@ -40,7 +40,7 @@ const expressJwt = require('express-jwt')
 const waterfall = require('run-waterfall')
 
 const User = require('./app/user')
-const token = require('./app/token')
+const Token = require('./app/token')
 const Email = require('./app/email')
 
 const app = express()
@@ -58,7 +58,7 @@ if (process.env.NODE_ENV !== 'test') {
 
 const loginToken = expressJwt({
   secret: process.env.LOGIN_JWT_SECRET || 'login-token-secret',
-  resultProperty: 'loginToken',
+  requestProperty: 'loginToken',
   credentialsRequired: true,
   getToken: (req) => {
     if (req.query) return req.query.token
@@ -84,7 +84,12 @@ app.get('/login', (req, res) => {
 })
 
 app.get('/login-verify', loginToken, (req, res) => {
-  return res.send('/login-verify')
+  Token.createSessionToken({email: req.loginToken.email}, (err, token) => {
+    if (err) return res.status(500).send(err)
+
+    res.cookie('webAppSession', token)
+    return res.status(200).send('/login-verify')
+  })
 })
 
 app.post('/login', (req, res) => {
@@ -111,7 +116,7 @@ app.post('/login', (req, res) => {
     },
     function createLoginTokenForUser ({user}, cb) {
       console.debug('createLoginTokenForUser')
-      token.createLoginToken({email: user.email}, (err, token) => {
+      Token.createLoginToken({email: user.email}, (err, token) => {
         return cb(err, {user, token})
       })
     },
@@ -122,8 +127,8 @@ app.post('/login', (req, res) => {
     }
   ], function (err, {user}) {
     if (err) return res.status(500).send(err)
-    if (user) return res.status(202).send('login request received')
-    return res.status(202).send('/login')
+
+    return res.status(202).send('login request received')
   })
 })
 

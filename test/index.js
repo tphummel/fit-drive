@@ -244,7 +244,6 @@ tap.test('POST /login (malformed email)', function (t) {
       // does not send email
 
       server.close((err) => {
-        console.log('end')
         t.ifErr(err)
         t.end()
       })
@@ -284,7 +283,17 @@ tap.test('GET /login-verify?token=invalid', function (t) {
 })
 
 tap.test('GET /login-verify?token=valid', function (t) {
-  const lib = proxyquire('..', {})
+  const spies = {
+    createSessionToken: sinon.spy(({email}, cb) => {
+      return setImmediate(cb, null, {email})
+    })
+  }
+
+  const lib = proxyquire('..', {
+    './app/token': {
+      createSessionToken: spies.createSessionToken
+    }
+  })
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
@@ -295,13 +304,17 @@ tap.test('GET /login-verify?token=valid', function (t) {
         pathname: 'login-verify',
         port: port,
         query: {
-          token: jwt.sign({}, process.env.LOGIN_JWT_SECRET)
+          token: jwt.sign({
+            email: 'tphummel@gmail.com'
+          }, process.env.LOGIN_JWT_SECRET)
         }
       })
     }, (err, res) => {
       t.ifErr(err)
 
       t.equal(res.statusCode, 200)
+      t.ok(res.headers['set-cookie'][0], 'a cookie was set')
+      t.ok(/^webAppSession/.test(res.headers['set-cookie'][0]))
 
       server.close((err) => {
         t.ifErr(err)
