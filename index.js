@@ -68,9 +68,9 @@ const loginToken = expressJwt({
 
 const sessionToken = expressJwt({
   secret: process.env.SESSION_JWT_SECRET || 'session-cookie-secret',
-  credentialsRequired: false,
+  credentialsRequired: true,
   getToken: (req) => {
-    if (req.cookies) return req.cookies.webAppSession
+    if (req.cookies) return req.cookies.sessionPayload
     return null
   }
 })
@@ -136,10 +136,9 @@ app.get('/home', sessionToken, (req, res) => {
 })
 
 app.get('/logout', sessionToken, (req, res) => {
-  // clear cookie
-  // if clear all sessions, set a invalidation for the user
-  // the other option is jwt secret per user and rotate it
-  return res.send('/logout')
+  res.clearCookie('sessionPayload')
+  res.set('location', '/login')
+  return res.status(307).send('/logout')
 })
 
 app.get('/settings', sessionToken, (req, res) => {

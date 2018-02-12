@@ -344,3 +344,48 @@ tap.test('GET /login-verify?token=valid', function (t) {
     }).end()
   })
 })
+
+tap.test('GET /logout (w/ active session)', function (t) {
+  const lib = proxyquire('..', {})
+
+  const server = lib.start(lib.app, port, (err) => {
+    t.ifErr(err)
+
+    http.request({
+      method: 'GET',
+      path: '/logout',
+      port: port,
+      headers: {
+        cookie: cookie.serialize(
+          'sessionPayload',
+          jwt.sign({
+            email: 'tphummel@gmail.com'
+          }, process.env.SESSION_JWT_SECRET)
+        )
+      }
+    }, (res) => {
+      t.equal(res.statusCode, 307)
+      t.equal(res.headers.location, '/login')
+
+      t.ok(res.headers['set-cookie'][0], 'a cookie was set')
+
+      let observedCookie
+      try {
+        observedCookie = cookie.parse(res.headers['set-cookie'][0])
+      } catch (e) {
+        t.fail(e)
+      }
+
+      const sessionPayloadIsEmptyString = observedCookie.sessionPayload === ''
+      t.ok(sessionPayloadIsEmptyString)
+
+      const cookieExpiresInThePast = new Date(observedCookie.Expires) < new Date()
+      t.ok(cookieExpiresInThePast)
+
+      server.close((err) => {
+        t.ifErr(err)
+        t.end()
+      })
+    }).end()
+  })
+})
