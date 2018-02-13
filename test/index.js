@@ -391,3 +391,50 @@ tap.test('GET /logout (w/ active session)', function (t) {
     }).end()
   })
 })
+
+tap.test('POST /settings/delete-account (w/ active session)', function (t) {
+  const spies = {
+    deleteUser: sinon.spy(({email}, cb) => {
+      return setImmediate(cb, null)
+    }),
+    findUser: sinon.spy()
+  }
+
+  const lib = proxyquire('..', {
+    './app/user': {
+      deleteUser: spies.deleteUser,
+      findUser: spies.findUser
+    }
+  })
+
+  const server = lib.start(lib.app, port, (err) => {
+    t.ifErr(err)
+
+    const email = 'tphummel@gmail.com'
+
+    http.request({
+      method: 'POST',
+      path: '/settings/delete-account',
+      port: port,
+      headers: {
+        cookie: cookie.serialize(
+          'sessionPayload',
+          jwt.sign({
+            email: email
+          }, process.env.SESSION_JWT_SECRET)
+        )
+      }
+    }, (res) => {
+      t.equal(spies.deleteUser.callCount, 1)
+      t.ok(spies.deleteUser.calledWith({email}))
+      t.equal(spies.findUser.callCount, 0)
+      t.equal(res.statusCode, 307)
+      t.equal(res.headers.location, '/')
+
+      server.close((err) => {
+        t.ifErr(err)
+        t.end()
+      })
+    }).end()
+  })
+})

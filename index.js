@@ -141,6 +141,16 @@ app.get('/logout', sessionToken, (req, res) => {
   return res.status(307).send('/logout')
 })
 
+app.post('/settings/delete-account', sessionToken, (req, res) => {
+  User.deleteUser({email: req.user.email}, (err) => {
+    if (err) return res.status(500).send(err)
+
+    res.clearCookie('sessionPayload')
+    res.set('location', '/')
+    return res.status(307).send('/settings')
+  })
+})
+
 app.get('/settings', sessionToken, (req, res) => {
   return res.send('/settings')
 })
