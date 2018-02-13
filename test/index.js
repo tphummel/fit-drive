@@ -10,6 +10,8 @@ const cookie = require('cookie')
 const sinon = require('sinon')
 const proxyquire = require('proxyquire').noPreserveCache()
 
+process.setMaxListeners(0)
+
 const port = '10001'
 
 process.env.LOGIN_JWT_SECRET = 'loginsecret'
