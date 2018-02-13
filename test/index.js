@@ -307,6 +307,8 @@ tap.test('GET /login-verify?token=valid', function (t) {
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
+    const email = 'tphummel@gmail.com'
+
     http.request(url.format({
       protocol: 'http',
       hostname: 'localhost',
@@ -314,7 +316,7 @@ tap.test('GET /login-verify?token=valid', function (t) {
       port: port,
       query: {
         token: jwt.sign({
-          email: 'tphummel@gmail.com'
+          email: email
         }, process.env.LOGIN_JWT_SECRET)
       }
     }), (res) => {
@@ -337,6 +339,8 @@ tap.test('GET /login-verify?token=valid', function (t) {
 
       jwt.verify(observedCookie.sessionPayload, process.env.SESSION_JWT_SECRET, (err, payload) => {
         t.ifErr(err)
+
+        t.equal(payload.email, email)
 
         server.close((err) => {
           t.ifErr(err)
