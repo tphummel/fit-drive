@@ -23,7 +23,7 @@ process.env.SESSION_JWT_SECRET = 'sessionsecret'
 // production
 
 tap.test('GET /', function (t) {
-  const lib = proxyquire('.', {})
+  const lib = require('.')
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
@@ -47,7 +47,7 @@ tap.test('GET /', function (t) {
 })
 
 tap.test('GET /login', function (t) {
-  const lib = proxyquire('.', {})
+  const lib = require('.')
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
@@ -71,6 +71,8 @@ tap.test('GET /login', function (t) {
 })
 
 tap.test('POST /login (existing user)', function (t) {
+  const Token = require('./app/token')
+
   const spies = {
     findUser: sinon.spy(({email}, cb) => {
       return setImmediate(cb, null, {
@@ -78,9 +80,6 @@ tap.test('POST /login (existing user)', function (t) {
       })
     }),
     createUser: sinon.spy(),
-    createLoginToken: sinon.spy(({email}, cb) => {
-      return setImmediate(cb, null, {})
-    }),
     sendLoginEmail: sinon.spy(({email}, cb) => {
       return setImmediate(cb, null, {})
     })
@@ -92,7 +91,7 @@ tap.test('POST /login (existing user)', function (t) {
       createUser: spies.createUser
     },
     './app/token': {
-      createLoginToken: spies.createLoginToken
+      createLoginToken: sinon.spy(Token, 'createLoginToken')
     },
     './app/email': {
       sendLoginEmail: spies.sendLoginEmail
@@ -118,8 +117,8 @@ tap.test('POST /login (existing user)', function (t) {
 
       t.equal(spies.findUser.callCount, 1)
       t.ok(spies.findUser.calledWith({email}))
-      t.equal(spies.createLoginToken.callCount, 1)
-      t.ok(spies.createLoginToken.calledWith({email}))
+      t.equal(Token.createLoginToken.callCount, 1)
+      t.ok(Token.createLoginToken.calledWith({email}))
       t.equal(spies.createUser.callCount, 0)
       t.equal(spies.sendLoginEmail.callCount, 1)
 
@@ -134,6 +133,8 @@ tap.test('POST /login (existing user)', function (t) {
 })
 
 tap.test('POST /login (new user)', function (t) {
+  const Token = require('./app/token')
+
   const spies = {
     findUser: sinon.spy(({email}, cb) => {
       return setImmediate(cb, null, null)
@@ -142,9 +143,6 @@ tap.test('POST /login (new user)', function (t) {
       return setImmediate(cb, null, {
         email: email
       })
-    }),
-    createLoginToken: sinon.spy(({email}, cb) => {
-      return setImmediate(cb, null, {})
     }),
     sendLoginEmail: sinon.spy(({email}, cb) => {
       return setImmediate(cb, null, {})
@@ -157,7 +155,7 @@ tap.test('POST /login (new user)', function (t) {
       createUser: spies.createUser
     },
     './app/token': {
-      createLoginToken: spies.createLoginToken
+      createLoginToken: sinon.spy(Token, 'createLoginToken')
     },
     './app/email': {
       sendLoginEmail: spies.sendLoginEmail
@@ -185,8 +183,8 @@ tap.test('POST /login (new user)', function (t) {
       t.ok(spies.findUser.calledWith({email}))
       t.equal(spies.createUser.callCount, 1)
       t.ok(spies.createUser.calledWith({email}))
-      t.equal(spies.createLoginToken.callCount, 1)
-      t.ok(spies.createLoginToken.calledWith({email}))
+      t.equal(Token.createLoginToken.callCount, 1)
+      t.ok(Token.createLoginToken.calledWith({email}))
       t.equal(spies.sendLoginEmail.callCount, 1)
 
       t.equal(res.statusCode, 202)
@@ -200,7 +198,7 @@ tap.test('POST /login (new user)', function (t) {
 })
 
 tap.test('POST /login (missing email)', function (t) {
-  const lib = proxyquire('.', {})
+  const lib = require('.')
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
@@ -229,7 +227,7 @@ tap.test('POST /login (missing email)', function (t) {
 })
 
 tap.test('POST /login (malformed email)', function (t) {
-  const lib = proxyquire('.', {})
+  const lib = require('.')
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
@@ -291,17 +289,11 @@ tap.test('GET /login-verify?token=invalid', function (t) {
 })
 
 tap.test('GET /login-verify?token=valid', function (t) {
-  const spies = {
-    createSessionToken: sinon.spy(({email}, cb) => {
-      return jwt.sign({
-        email
-      }, process.env.SESSION_JWT_SECRET, {}, cb)
-    })
-  }
+  const Token = require('./app/token')
 
   const lib = proxyquire('.', {
     './app/token': {
-      createSessionToken: spies.createSessionToken
+      createSessionToken: sinon.spy(Token, 'createSessionToken')
     }
   })
 
@@ -327,6 +319,7 @@ tap.test('GET /login-verify?token=valid', function (t) {
 
       t.equal(res.statusCode, 307)
       t.equal(res.headers.location, '/home')
+      t.equal(Token.createSessionToken.callCount, 1)
 
       t.ok(res.headers['set-cookie'][0], 'a cookie was set')
 
