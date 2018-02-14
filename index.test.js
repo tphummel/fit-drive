@@ -310,6 +310,8 @@ tap.test('GET /login-verify?token=valid', function (t) {
 
     const email = 'tphummel@gmail.com'
 
+    // using http.request instead of simple-get
+    // because i want to examine the redirect and set-cookie header
     http.request(url.format({
       protocol: 'http',
       hostname: 'localhost',
