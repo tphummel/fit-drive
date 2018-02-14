@@ -8,7 +8,7 @@
   },
   "scripts": {
     "fix": "standard --fix",
-    "test": "standard && NODE_ENV=test tap --reporter classic test/*.js --coverage-report=text-summary"
+    "test": "standard && NODE_ENV=test tap --reporter classic *.test.js --coverage-report=text-summary"
   },
   "repository": {
     "type": "git",

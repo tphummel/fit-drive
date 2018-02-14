@@ -22,7 +22,7 @@ process.env.SESSION_JWT_SECRET = 'sessionsecret'
 // production
 
 tap.test('GET /', function (t) {
-  const lib = proxyquire('..', {})
+  const lib = proxyquire('.', {})
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
@@ -46,7 +46,7 @@ tap.test('GET /', function (t) {
 })
 
 tap.test('GET /login', function (t) {
-  const lib = proxyquire('..', {})
+  const lib = proxyquire('.', {})
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
@@ -85,7 +85,7 @@ tap.test('POST /login (existing user)', function (t) {
     })
   }
 
-  const lib = proxyquire('..', {
+  const lib = proxyquire('.', {
     './app/user': {
       findUser: spies.findUser,
       createUser: spies.createUser
@@ -150,7 +150,7 @@ tap.test('POST /login (new user)', function (t) {
     })
   }
 
-  const lib = proxyquire('..', {
+  const lib = proxyquire('.', {
     './app/user': {
       findUser: spies.findUser,
       createUser: spies.createUser
@@ -199,7 +199,7 @@ tap.test('POST /login (new user)', function (t) {
 })
 
 tap.test('POST /login (missing email)', function (t) {
-  const lib = proxyquire('..', {})
+  const lib = proxyquire('.', {})
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
@@ -228,7 +228,7 @@ tap.test('POST /login (missing email)', function (t) {
 })
 
 tap.test('POST /login (malformed email)', function (t) {
-  const lib = proxyquire('..', {})
+  const lib = proxyquire('.', {})
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
@@ -262,7 +262,7 @@ tap.test('POST /login (malformed email)', function (t) {
 // GET /login?token=tampered
 
 tap.test('GET /login-verify?token=invalid', function (t) {
-  const lib = proxyquire('..', {})
+  const lib = proxyquire('.', {})
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
@@ -298,7 +298,7 @@ tap.test('GET /login-verify?token=valid', function (t) {
     })
   }
 
-  const lib = proxyquire('..', {
+  const lib = proxyquire('.', {
     './app/token': {
       createSessionToken: spies.createSessionToken
     }
@@ -352,7 +352,7 @@ tap.test('GET /login-verify?token=valid', function (t) {
 })
 
 tap.test('GET /logout (w/ active session)', function (t) {
-  const lib = proxyquire('..', {})
+  const lib = proxyquire('.', {})
 
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
@@ -404,7 +404,7 @@ tap.test('POST /settings/delete-account (w/ active session)', function (t) {
     findUser: sinon.spy()
   }
 
-  const lib = proxyquire('..', {
+  const lib = proxyquire('.', {
     './app/user': {
       deleteUser: spies.deleteUser,
       findUser: spies.findUser
