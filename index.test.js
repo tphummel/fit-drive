@@ -17,6 +17,7 @@ const port = '10001'
 process.env.LOGIN_JWT_SECRET = 'loginsecret'
 process.env.SESSION_JWT_SECRET = 'sessionsecret'
 
+// TODO:
 // to get to -100, may need to test NODE_ENV logging modes
 // development
 // production
@@ -216,8 +217,8 @@ tap.test('POST /login (missing email)', function (t) {
 
       t.equal(res.statusCode, 400)
 
-      // does not call database to lookup user by email
-      // does not send email
+      // TODO: does not call database to lookup user by email
+      // TODO: does not send email
 
       server.close((err) => {
         t.ifErr(err)
@@ -247,8 +248,8 @@ tap.test('POST /login (malformed email)', function (t) {
 
       t.equal(res.statusCode, 422)
 
-      // does not call database to lookup user by email
-      // does not send email
+      // TODO: does not call database to lookup user by email
+      // TODO: does not send email
 
       server.close((err) => {
         t.ifErr(err)
@@ -258,8 +259,8 @@ tap.test('POST /login (malformed email)', function (t) {
   })
 })
 
-// GET /login?token=expired
-// GET /login?token=tampered
+// TODO: GET /login?token=expired
+// TODO: GET /login?token=tampered
 
 tap.test('GET /login-verify?token=invalid', function (t) {
   const lib = proxyquire('.', {})
