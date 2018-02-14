@@ -2,7 +2,9 @@
 
 function findUser ({email}, cb) { return setImmediate(cb, null) }
 
-function createUser ({email}, cb) { return setImmediate(cb, null) }
+function createUser ({email}, cb) {
+  return setImmediate(cb, null, {email})
+}
 
 function deleteUser ({email}, cb) { return setImmediate(cb, null) }
 

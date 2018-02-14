@@ -80,7 +80,12 @@ app.get('/', (req, res) => {
 })
 
 app.get('/login', (req, res) => {
-  return res.send('/login')
+  return res.status(200).send(`
+<form action="" method="post">
+  <input type="text" name="email" />
+  <input type="submit" value="login" />
+</form>
+    `)
 })
 
 app.get('/login-verify', loginToken, (req, res) => {
