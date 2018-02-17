@@ -1,6 +1,7 @@
 'use strict'
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development'
+process.env.PORT = process.env.PORT || '8000'
 
 const bole = require('bole')
 
@@ -179,7 +180,7 @@ module.exports = {
 }
 
 if (!module.parent) {
-  const port = process.env.PORT || '8000'
+  const port = process.env.PORT
   start(app, port, (err) => {
     if (err) console.error(err) && process.exit(1)
     console.log(`listening on port ${port}`)
