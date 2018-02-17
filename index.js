@@ -77,11 +77,15 @@ const sessionToken = expressJwt({
 })
 
 app.get('/', (req, res) => {
-  return res.send('/')
+  return res.status(200).send(`
+<p>/</p>
+<a href="/login">login</a>
+`)
 })
 
 app.get('/login', (req, res) => {
   return res.status(200).send(`
+<p>/login</p>
 <form action="" method="post">
   <input type="text" name="email" />
   <input type="submit" value="login" />
