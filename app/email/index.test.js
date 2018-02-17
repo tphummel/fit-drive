@@ -12,7 +12,9 @@ tap.test((t) => {
   })
 
   lib.sendLoginEmail({
-    email: 'tphummel@gmail.com',
+    user: {
+      email: 'tphummel@gmail.com'
+    },
     token: 'proof'
   }, (err) => {
     t.ifErr(err)
