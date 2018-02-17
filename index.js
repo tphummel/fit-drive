@@ -5,6 +5,7 @@ process.env.PORT = process.env.PORT || '8000'
 
 const bole = require('bole')
 const url = require('url')
+const simpleGet = require('simple-get')
 
 const pkg = require('./package.json')
 const logLevels = ['error', 'warn', 'info', 'debug']
@@ -199,6 +200,40 @@ app.get('/authorize/fitbit', sessionToken, (req, res) => {
 
   res.set('location', fitbitAuthorizationUrl)
   res.status(302).send()
+})
+
+app.get('/authorize-verify/fitbit', sessionToken, (req, res) => {
+  if (!req.query) return res.status(400).send('bad inputs')
+  if (!req.query.code) return res.status(400).send('bad inputs')
+
+  const authoCode = req.query.code
+
+  simpleGet.concat({
+    method: 'POST',
+    url: url.format({
+      protocol: 'https',
+      hostname: 'api.fitbit.com',
+      pathname: '/oauth2/token',
+      auth: [
+        process.env.FITBIT_OAUTH_CLIENT_ID,
+        process.env.FITBIT_OAUTH_CLIENT_SECRET
+      ].join(':')
+    }),
+    json: true,
+    form: {
+      client_id: process.env.FITBIT_OAUTH_CLIENT_ID,
+      grant_type: 'authorization_code',
+      redirect_uri: 'http://localhost:8000/authorize-verify/fitbit',
+      code: authoCode
+    }
+  }, function onFitbitTokensResponse (err, tokenRes, tokenData) {
+    if (err) return res.status(500).send(err)
+    console.log('tokenRes.statusCode', tokenRes.statusCode)
+    console.log('tokenData', tokenData)
+
+    // res.set('location', '/home')
+    res.status(200).send()
+  })
 })
 
 function start (app, port, cb) {
