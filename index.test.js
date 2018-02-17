@@ -438,3 +438,41 @@ tap.test('POST /settings/delete-account (w/ active session)', function (t) {
     }).end()
   })
 })
+
+tap.test('GET /authorize/fitbit (w/ active session)', function (t) {
+  process.env.FITBIT_OAUTH_CLIENT_ID = 'fitbitclientid'
+  const lib = require('.')
+
+  const server = lib.start(lib.app, port, (err) => {
+    t.ifErr(err)
+
+    const email = 'tphummel@gmail.com'
+
+    http.request({
+      method: 'GET',
+      path: '/authorize/fitbit',
+      port: port,
+      headers: {
+        cookie: cookie.serialize(
+          'sessionPayload',
+          jwt.sign({
+            email: email
+          }, process.env.SESSION_JWT_SECRET)
+        )
+      }
+    }, (res) => {
+      t.equal(res.statusCode, 302)
+      const parseQueryString = true
+      const redirectUrl = url.parse(res.headers.location, parseQueryString)
+
+      t.equal(redirectUrl.hostname, 'www.fitbit.com')
+      t.equal(redirectUrl.pathname, '/oauth2/authorize')
+      t.equal(redirectUrl.query.client_id, process.env.FITBIT_OAUTH_CLIENT_ID)
+
+      server.close((err) => {
+        t.ifErr(err)
+        t.end()
+      })
+    }).end()
+  })
+})

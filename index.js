@@ -4,6 +4,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development'
 process.env.PORT = process.env.PORT || '8000'
 
 const bole = require('bole')
+const url = require('url')
 
 const pkg = require('./package.json')
 const logLevels = ['error', 'warn', 'info', 'debug']
@@ -142,7 +143,10 @@ app.post('/login', (req, res) => {
 })
 
 app.get('/home', sessionToken, (req, res) => {
-  return res.send('/home')
+  return res.send(`
+<p>/home</p>
+<a href="/authorize/fitbit">Authorize Fitbit</a>
+`)
 })
 
 app.get('/logout', sessionToken, (req, res) => {
@@ -167,6 +171,34 @@ app.get('/settings', sessionToken, (req, res) => {
 
 app.get('/settings/billing', sessionToken, (req, res) => {
   return res.send('/settings/billing')
+})
+
+app.get('/authorize/fitbit', sessionToken, (req, res) => {
+  const desiredScopes = [
+    'activity', 'heartrate', 'location',
+    'nutrition', 'sleep', 'weight',
+    'profile'
+  ]
+
+  const fitbitAuthorizationUrl = url.format({
+    protocol: 'https',
+    hostname: 'www.fitbit.com',
+    pathname: 'oauth2/authorize',
+    query: {
+      client_id: process.env.FITBIT_OAUTH_CLIENT_ID,
+      response_type: 'code',
+      scope: desiredScopes.join(' '),
+      redirect_uri: url.format({
+        protocol: 'http',
+        hostname: 'localhost',
+        pathname: '/authorize-verify/fitbit',
+        port: process.env.PORT
+      })
+    }
+  })
+
+  res.set('location', fitbitAuthorizationUrl)
+  res.status(302).send()
 })
 
 function start (app, port, cb) {
