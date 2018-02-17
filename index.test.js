@@ -476,3 +476,83 @@ tap.test('GET /authorize/fitbit (w/ active session)', function (t) {
     }).end()
   })
 })
+
+tap.test('GET /authorize-verify/fitbit (w/ active session)', function (t) {
+  process.env.FITBIT_OAUTH_CLIENT_ID = 'fitbitclientid'
+  process.env.FITBIT_OAUTH_CLIENT_SECRET = 'fitbitclientsecret'
+
+  const mockResBodyParsed = {
+    access_token: 'my_access_token_jwt',
+    expires_in: 28800,
+    refresh_token: 'my_refresh_token_64char',
+    scope: 'weight heartrate sleep activity nutrition profile location',
+    token_type: 'Bearer',
+    user_id: 'my_user_id'
+  }
+
+  const spies = {
+    saveAuthorization: sinon.spy((autho, cb) => {
+      return setImmediate(cb, null)
+    }),
+    sgConcat: sinon.spy((opts, cb) => {
+      const mockErr = null
+      const mockRes = {statusCode: 200}
+
+      return setImmediate(cb, mockErr, mockRes, mockResBodyParsed)
+    })
+  }
+
+  const lib = proxyquire('.', {
+    './app/user': {
+      saveAuthorization: spies.saveAuthorization
+    },
+    'simple-get': {
+      concat: spies.sgConcat
+    }
+  })
+
+  const server = lib.start(lib.app, port, (err) => {
+    t.ifErr(err)
+
+    const email = 'tphummel@gmail.com'
+    const fitbitAuthoCode = 'autho-code-from-fitbit'
+
+    // http://localhost:8000/authorize-verify/fitbit?code=f5ec899b665aed67abd99b108660af3ce7cbff6c
+
+    http.request({
+      method: 'GET',
+      path: `/authorize-verify/fitbit?code=${fitbitAuthoCode}`,
+      port: port,
+      headers: {
+        cookie: cookie.serialize(
+          'sessionPayload',
+          jwt.sign({
+            email: email
+          }, process.env.SESSION_JWT_SECRET)
+        )
+      }
+    }, (res) => {
+      t.equal(res.statusCode, 307)
+      t.equal(res.headers.location, '/home')
+
+      t.equal(spies.saveAuthorization.callCount, 1)
+
+      const spiedSaveAuthoCall = spies.saveAuthorization.getCall(0).args[0]
+
+      t.equal(spiedSaveAuthoCall.name, 'fitbit')
+      t.equal(spiedSaveAuthoCall.refreshToken, mockResBodyParsed.refresh_token)
+      t.equal(spiedSaveAuthoCall.accessToken, mockResBodyParsed.access_token)
+      t.equal(spiedSaveAuthoCall.scope, mockResBodyParsed.scope)
+      t.equal(spiedSaveAuthoCall.userId, mockResBodyParsed.user_id)
+      t.equal(spiedSaveAuthoCall.email, email)
+      t.equal(spiedSaveAuthoCall.tokenType, mockResBodyParsed.token_type)
+
+      t.equal(spies.sgConcat.callCount, 1)
+
+      server.close((err) => {
+        t.ifErr(err)
+        t.end()
+      })
+    }).end()
+  })
+})

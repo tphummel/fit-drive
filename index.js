@@ -228,11 +228,27 @@ app.get('/authorize-verify/fitbit', sessionToken, (req, res) => {
     }
   }, function onFitbitTokensResponse (err, tokenRes, tokenData) {
     if (err) return res.status(500).send(err)
-    console.log('tokenRes.statusCode', tokenRes.statusCode)
-    console.log('tokenData', tokenData)
 
-    // res.set('location', '/home')
-    res.status(200).send()
+    // handle case where we don't get 200 back from fitbit
+    // console.log('tokenRes.statusCode', tokenRes.statusCode)
+    // console.log('tokenData', tokenData)
+
+    const authorization = {
+      name: 'fitbit',
+      refreshToken: tokenData.refresh_token,
+      accessToken: tokenData.access_token,
+      scope: tokenData.scope,
+      userId: tokenData.user_id,
+      email: req.user.email,
+      tokenType: tokenData.token_type
+    }
+
+    User.saveAuthorization(authorization, (err) => {
+      if (err) return res.status(500).send(err)
+
+      res.set('location', '/home')
+      res.status(307).send()
+    })
   })
 })
 
