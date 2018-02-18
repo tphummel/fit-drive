@@ -216,6 +216,7 @@ app.get('/authorize/drive', sessionToken, (req, res) => {
       client_id: process.env.DRIVE_OAUTH_CLIENT_ID,
       response_type: 'code',
       access_type: 'offline',
+      prompt: 'consent',
       scope: desiredScopes.join(' '),
       redirect_uri: url.format({
         protocol: 'http',
@@ -301,6 +302,7 @@ app.get('/authorize-verify/drive', sessionToken, (req, res) => {
     json: true,
     form: {
       client_id: process.env.DRIVE_OAUTH_CLIENT_ID,
+      client_secret: process.env.DRIVE_OAUTH_CLIENT_SECRET,
       grant_type: 'authorization_code',
       redirect_uri: 'http://localhost:8000/authorize-verify/drive',
       code: authoCode

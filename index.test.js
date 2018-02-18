@@ -601,6 +601,7 @@ tap.test('GET /authorize-verify/drive (w/ active session)', function (t) {
 
   const mockResBodyParsed = {
     access_token: 'my_access_token_jwt',
+    refresh_token: 'my_refresh_token',
     expires_in: 3599,
     scope: 'https://www.googleapis.com/auth/drive.file',
     token_type: 'Bearer'
@@ -654,7 +655,7 @@ tap.test('GET /authorize-verify/drive (w/ active session)', function (t) {
       const spiedSaveAuthoCall = spies.saveAuthorization.getCall(0).args[0]
 
       t.equal(spiedSaveAuthoCall.name, 'drive')
-      // t.equal(spiedSaveAuthoCall.refreshToken, mockResBodyParsed.refresh_token)
+      t.equal(spiedSaveAuthoCall.refreshToken, mockResBodyParsed.refresh_token)
       t.equal(spiedSaveAuthoCall.accessToken, mockResBodyParsed.access_token)
       t.equal(spiedSaveAuthoCall.scope, mockResBodyParsed.scope)
       // t.equal(spiedSaveAuthoCall.userId, mockResBodyParsed.user_id)
