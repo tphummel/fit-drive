@@ -477,6 +477,44 @@ tap.test('GET /authorize/fitbit (w/ active session)', function (t) {
   })
 })
 
+tap.test('GET /authorize/drive (w/ active session)', function (t) {
+  process.env.DRIVE_OAUTH_CLIENT_ID = 'driveclientid'
+  const lib = require('.')
+
+  const server = lib.start(lib.app, port, (err) => {
+    t.ifErr(err)
+
+    const email = 'tphummel@gmail.com'
+
+    http.request({
+      method: 'GET',
+      path: '/authorize/drive',
+      port: port,
+      headers: {
+        cookie: cookie.serialize(
+          'sessionPayload',
+          jwt.sign({
+            email: email
+          }, process.env.SESSION_JWT_SECRET)
+        )
+      }
+    }, (res) => {
+      t.equal(res.statusCode, 302)
+      const parseQueryString = true
+      const redirectUrl = url.parse(res.headers.location, parseQueryString)
+
+      t.equal(redirectUrl.hostname, 'accounts.google.com')
+      t.equal(redirectUrl.pathname, '/o/oauth2/v2/auth')
+      t.equal(redirectUrl.query.client_id, process.env.DRIVE_OAUTH_CLIENT_ID)
+
+      server.close((err) => {
+        t.ifErr(err)
+        t.end()
+      })
+    }).end()
+  })
+})
+
 tap.test('GET /authorize-verify/fitbit (w/ active session)', function (t) {
   process.env.FITBIT_OAUTH_CLIENT_ID = 'fitbitclientid'
   process.env.FITBIT_OAUTH_CLIENT_SECRET = 'fitbitclientsecret'
@@ -544,6 +582,82 @@ tap.test('GET /authorize-verify/fitbit (w/ active session)', function (t) {
       t.equal(spiedSaveAuthoCall.accessToken, mockResBodyParsed.access_token)
       t.equal(spiedSaveAuthoCall.scope, mockResBodyParsed.scope)
       t.equal(spiedSaveAuthoCall.userId, mockResBodyParsed.user_id)
+      t.equal(spiedSaveAuthoCall.email, email)
+      t.equal(spiedSaveAuthoCall.tokenType, mockResBodyParsed.token_type)
+
+      t.equal(spies.sgConcat.callCount, 1)
+
+      server.close((err) => {
+        t.ifErr(err)
+        t.end()
+      })
+    }).end()
+  })
+})
+
+tap.test('GET /authorize-verify/drive (w/ active session)', function (t) {
+  process.env.DRIVE_OAUTH_CLIENT_ID = 'driveclientid'
+  process.env.DRIVE_OAUTH_CLIENT_SECRET = 'driveclientsecret'
+
+  const mockResBodyParsed = {
+    access_token: 'my_access_token_jwt',
+    expires_in: 3599,
+    scope: 'https://www.googleapis.com/auth/drive.file',
+    token_type: 'Bearer'
+  }
+
+  const spies = {
+    saveAuthorization: sinon.spy((autho, cb) => {
+      return setImmediate(cb, null)
+    }),
+    sgConcat: sinon.spy((opts, cb) => {
+      const mockErr = null
+      const mockRes = {statusCode: 200}
+
+      return setImmediate(cb, mockErr, mockRes, mockResBodyParsed)
+    })
+  }
+
+  const lib = proxyquire('.', {
+    './app/user': {
+      saveAuthorization: spies.saveAuthorization
+    },
+    'simple-get': {
+      concat: spies.sgConcat
+    }
+  })
+
+  const server = lib.start(lib.app, port, (err) => {
+    t.ifErr(err)
+
+    const email = 'tphummel@gmail.com'
+    const driveAuthoCode = 'autho-code-from-google'
+
+    http.request({
+      method: 'GET',
+      path: `/authorize-verify/drive?code=${driveAuthoCode}`,
+      port: port,
+      headers: {
+        cookie: cookie.serialize(
+          'sessionPayload',
+          jwt.sign({
+            email: email
+          }, process.env.SESSION_JWT_SECRET)
+        )
+      }
+    }, (res) => {
+      t.equal(res.statusCode, 307)
+      t.equal(res.headers.location, '/home')
+
+      t.equal(spies.saveAuthorization.callCount, 1)
+
+      const spiedSaveAuthoCall = spies.saveAuthorization.getCall(0).args[0]
+
+      t.equal(spiedSaveAuthoCall.name, 'drive')
+      // t.equal(spiedSaveAuthoCall.refreshToken, mockResBodyParsed.refresh_token)
+      t.equal(spiedSaveAuthoCall.accessToken, mockResBodyParsed.access_token)
+      t.equal(spiedSaveAuthoCall.scope, mockResBodyParsed.scope)
+      // t.equal(spiedSaveAuthoCall.userId, mockResBodyParsed.user_id)
       t.equal(spiedSaveAuthoCall.email, email)
       t.equal(spiedSaveAuthoCall.tokenType, mockResBodyParsed.token_type)
 
