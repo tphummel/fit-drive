@@ -258,8 +258,7 @@ app.get('/authorize-verify/fitbit', sessionToken, (req, res) => {
     if (err) return res.status(500).send(err)
 
     // handle case where we don't get 200 back from fitbit
-    // console.log('tokenRes.statusCode', tokenRes.statusCode)
-    // console.log('tokenData', tokenData)
+    console.log('tokenData', tokenData)
 
     const authorization = {
       name: 'fitbit',
