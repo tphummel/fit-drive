@@ -1,18 +1,5 @@
 'use strict'
 
-function findUser ({email}, cb) { return setImmediate(cb, null) }
+process.env.DB_MODE = process.env.DB_MODE || 'noop'
 
-function createUser ({email}, cb) {
-  return setImmediate(cb, null, {email})
-}
-
-function saveAuthorization (opts, cb) { return setImmediate(cb, null) }
-
-function deleteUser ({email}, cb) { return setImmediate(cb, null) }
-
-module.exports = {
-  findUser,
-  createUser,
-  saveAuthorization,
-  deleteUser
-}
+module.exports = require(`./${process.env.DB_MODE}`)
