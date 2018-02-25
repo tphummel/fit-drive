@@ -57,7 +57,9 @@ function saveAuthorization (opts, cb) {
   })
 }
 
-function deleteUser ({email}, cb) { return setImmediate(cb, null) }
+function deleteUser ({email}, cb) {
+  fs.unlink(path.resolve(dbPath, email), cb)
+}
 
 module.exports = {
   findUser,

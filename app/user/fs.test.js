@@ -13,7 +13,17 @@ tap.test('create and find new user', (t) => {
 
       t.ok(foundUser)
       t.equal(foundUser.email, newUser.email)
-      t.end()
+
+      lib.deleteUser(foundUser, (err) => {
+        t.ifErr(err)
+
+        lib.findUser(foundUser, (err, shouldBeEmpty) => {
+          t.ifErr(err)
+          t.notOk(shouldBeEmpty)
+
+          t.end()
+        })
+      })
     })
   })
 })
