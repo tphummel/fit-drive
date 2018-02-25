@@ -258,8 +258,7 @@ app.get('/authorize-verify/fitbit', sessionToken, (req, res) => {
   }, function onFitbitTokensResponse (err, tokenRes, tokenData) {
     if (err) return res.status(500).send(err)
 
-    // handle case where we don't get 200 back from fitbit
-    console.log('tokenData', tokenData)
+    // TODO: handle case where we don't get 200 back from fitbit
 
     const authorization = {
       name: 'fitbit',
@@ -309,8 +308,8 @@ app.get('/authorize-verify/drive', sessionToken, (req, res) => {
     }
   }, function onDriveTokensResponse (err, tokenRes, tokenData) {
     if (err) return res.status(500).send(err)
-    // handle case where we don't get 200 back from drive
-    console.log(tokenData)
+
+    // TODO: handle case where we don't get 200 back from drive
 
     const authorization = {
       name: 'drive',

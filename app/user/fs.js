@@ -23,7 +23,9 @@ function findUser ({email}, cb) {
   initDb((err) => {
     if (err) return cb(err)
     fs.readFile(path.resolve(dbPath, email), {}, (err, data) => {
-      if (err) return cb(err)
+      if (err && err.code !== 'ENOENT') return cb(err)
+      if (!data) return cb(null, null)
+
       return cb(null, JSON.parse(data))
     })
   })
@@ -43,7 +45,17 @@ function createUser (user, cb) {
   })
 }
 
-function saveAuthorization (opts, cb) { return setImmediate(cb, null) }
+function saveAuthorization (opts, cb) {
+  findUser({email: opts.email}, (err, user) => {
+    if (err) return cb(err)
+    if (!user) return cb(new Error('trying to save authorization. user not found'))
+
+    if (!user.authorizations) user.authorizations = {}
+    user.authorizations[opts.name] = opts
+
+    return createUser(user, cb)
+  })
+}
 
 function deleteUser ({email}, cb) { return setImmediate(cb, null) }
 
