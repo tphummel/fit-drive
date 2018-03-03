@@ -156,6 +156,11 @@ app.post('/login', (req, res) => {
 app.get('/home', sessionToken, (req, res) => {
   User.findUser(req.user, (err, user) => {
     if (err) return res.status(500).send(err)
+
+    // if the database was empty or this user got deleted, this would log an error.
+    // it means there is a valid session token in the browser but no matching user in db.
+    // log it
+    // handle it: clear the cookie, redirect to login page
     user.authorizations = user.authorizations || {}
 
     return res.send(`
@@ -165,23 +170,91 @@ app.get('/home', sessionToken, (req, res) => {
       }
       <p>/home</p>
       <p>
-        Fitbit: ${user.authorizations.fitbit ? `Authorized <form action="/deauthorize/fitbit"><input type="submit" value="Delete" /></form>` : `<a href="/authorize/fitbit">Authorize</a>`}
+        Fitbit: ${user.authorizations.fitbit ? `Authorized <form method="post" action="/deauthorize/fitbit"><input type="submit" value="Delete" /></form>` : `<a href="/authorize/fitbit">Authorize</a>`}
       </p>
       <hr>
       <p>
-        Drive: ${user.authorizations.drive ? `Authorized <form action="/deauthorize/drive"><input type="submit" value="Delete" /></form>` : `<a href="/authorize/drive">Authorize</a>`}
+        Drive: ${user.authorizations.drive ? `Authorized <form method="post" action="/deauthorize/drive"><input type="submit" value="Delete" /></form>` : `<a href="/authorize/drive">Authorize</a>`}
       </p>
         ${user.authorizations.fitbit && user.authorizations.drive
           ? `
             <hr>
             <p>
-              <form action="/test-authorizations">
+              <form action="/authorizations-test" method="post">
                 <input type="submit" value="Test Authorizations" />
               </form>
             </p>`
           : ``
         }
     `)
+  })
+})
+
+app.post('/authorizations-test', sessionToken, (req, res) => {
+  waterfall([
+    function getLoggedInUser (cb) {
+      return User.findUser(req.user, cb)
+    },
+    function refreshFitbit (user, cb) {
+      if (!user.authorizations) { return cb(new Error('Fitbit Authorization Missing')) }
+      if (!user.authorizations.fitbit) { return cb(new Error('Fitbit Authorization Missing')) }
+      if (!user.authorizations.fitbit.refreshToken) { return cb(new Error('Fitbit Authorization Missing')) }
+
+      simpleGet.concat({
+        method: 'POST',
+        url: url.format({
+          protocol: 'https',
+          hostname: 'api.fitbit.com',
+          pathname: '/oauth2/token',
+          auth: [
+            process.env.FITBIT_OAUTH_CLIENT_ID,
+            process.env.FITBIT_OAUTH_CLIENT_SECRET
+          ].join(':')
+        }),
+        json: true,
+        form: {
+          client_id: process.env.FITBIT_OAUTH_CLIENT_ID,
+          grant_type: 'refresh_token',
+          expires_in: 3600, // 1 hour
+          refresh_token: user.authorizations.fitbit.refreshToken
+        }
+      }, (err, tokenRes, tokenData) => {
+        return cb(err, user, tokenData)
+      })
+    },
+    function saveFitbit (user, tokenData, cb) {
+      const authorization = {
+        name: 'fitbit',
+        refreshToken: tokenData.refresh_token,
+        accessToken: tokenData.access_token,
+        scope: tokenData.scope,
+        userId: tokenData.user_id,
+        email: req.user.email,
+        tokenType: tokenData.token_type
+      }
+
+      User.saveAuthorization(authorization, (err) => {
+        return cb(err, user)
+      })
+    }
+  ], function onAuthoVerifyFinish (err) {
+    let flash = {
+      at: new Date()
+    }
+
+    if (err) {
+      flash.type = 'error'
+      flash.message = `
+        authorization tests failed at ${flash.at}. please re-authorize and try again
+      `
+    } else {
+      flash.type = 'success'
+      flash.message = `authorization tests succeeded at ${flash.at}`
+    }
+    res.cookie('flash', flash)
+
+    res.set('location', '/home')
+    return res.status(302).send()
   })
 })
 
