@@ -52,6 +52,16 @@ module.exports = app
 app.use(require('body-parser').urlencoded({extended: true}))
 app.use(require('cookie-parser')())
 
+// custom flash middlware: https://gist.github.com/brianmacarthur/a4e3e0093d368aa8e423
+app.use((req, res, next) => {
+  // ensure flash is available to subsequent request then cleaned up
+  if (req.cookies.flash) {
+    res.locals.flash = req.cookies.flash
+    res.clearCookie('flash')
+  }
+  return next()
+})
+
 if (process.env.NODE_ENV !== 'test') {
   app.use(function requestLogger (req, res, next) {
     console.info(`${req.method} ${req.path}`)
@@ -149,6 +159,10 @@ app.get('/home', sessionToken, (req, res) => {
     user.authorizations = user.authorizations || {}
 
     return res.send(`
+      ${res.locals.flash
+        ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
+        : ``
+      }
       <p>/home</p>
       <p>
         Fitbit: ${user.authorizations.fitbit ? `Authorized <form action="/deauthorize/fitbit"><input type="submit" value="Delete" /></form>` : `<a href="/authorize/fitbit">Authorize</a>`}
