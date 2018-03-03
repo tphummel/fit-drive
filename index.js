@@ -90,6 +90,10 @@ const sessionToken = expressJwt({
 
 app.get('/', (req, res) => {
   return res.status(200).send(`
+${res.locals.flash
+  ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
+  : ``
+}
 <p>/</p>
 <a href="/login">login</a>
 `)
@@ -97,6 +101,10 @@ app.get('/', (req, res) => {
 
 app.get('/login', (req, res) => {
   return res.status(200).send(`
+${res.locals.flash
+  ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
+  : ``
+}
 <p>/login</p>
 <form action="" method="post">
   <input type="text" name="email" />
@@ -169,6 +177,8 @@ app.get('/home', sessionToken, (req, res) => {
         : ``
       }
       <p>/home</p>
+      <p>logged in as: ${user.email}</p>
+      <p><form method="post" action="/logout"><input type="submit" value="Logout" /></form></p>
       <p>
         Fitbit: ${user.authorizations.fitbit ? `Authorized <form method="post" action="/deauthorize/fitbit"><input type="submit" value="Delete" /></form>` : `<a href="/authorize/fitbit">Authorize</a>`}
       </p>
@@ -186,6 +196,8 @@ app.get('/home', sessionToken, (req, res) => {
             </p>`
           : ``
         }
+      <hr>
+      <p><form method="post" action="/settings/delete-account"><input type="submit" value="Delete Account" /></form></p>
     `)
   })
 })
@@ -298,19 +310,27 @@ app.post('/authorizations-test', sessionToken, (req, res) => {
   })
 })
 
-app.get('/logout', sessionToken, (req, res) => {
+app.post('/logout', sessionToken, (req, res) => {
   res.clearCookie('sessionPayload')
+  res.cookie('flash', {
+    type: 'success',
+    message: 'logout successful'
+  })
   res.set('location', '/login')
-  return res.status(307).send('/logout')
+  return res.status(302).send('/logout')
 })
 
 app.post('/settings/delete-account', sessionToken, (req, res) => {
   User.deleteUser({email: req.user.email}, (err) => {
     if (err) return res.status(500).send(err)
 
+    res.cookie('flash', {
+      type: 'success',
+      message: 'account deletion successful'
+    })
     res.clearCookie('sessionPayload')
     res.set('location', '/')
-    return res.status(307).send('/settings')
+    return res.status(302).send('/settings')
   })
 })
 
