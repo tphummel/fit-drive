@@ -219,13 +219,14 @@ app.post('/authorizations-test', sessionToken, (req, res) => {
           refresh_token: user.authorizations.fitbit.refreshToken
         }
       }, (err, tokenRes, tokenData) => {
+        if (tokenRes.statusCode >= 400) return cb(new Error(`Response ${tokenRes.StatusCode} received from fitbit`))
         return cb(err, user, tokenData)
       })
     },
     function saveFitbit (user, tokenData, cb) {
       const authorization = {
         name: 'fitbit',
-        refreshToken: tokenData.refresh_token,
+        refreshToken: tokenData.refresh_token || user.authorizations.drive.refreshToken,
         accessToken: tokenData.access_token,
         scope: tokenData.scope,
         userId: tokenData.user_id,
@@ -236,6 +237,45 @@ app.post('/authorizations-test', sessionToken, (req, res) => {
       User.saveAuthorization(authorization, (err) => {
         return cb(err, user)
       })
+    },
+    function refreshDrive (user, cb) {
+      simpleGet.concat({
+        method: 'POST',
+        url: url.format({
+          protocol: 'https',
+          hostname: 'www.googleapis.com',
+          pathname: '/oauth2/v4/token',
+          auth: [
+            process.env.DRIVE_OAUTH_CLIENT_ID,
+            process.env.DRIVE_OAUTH_CLIENT_SECRET
+          ].join(':')
+        }),
+        json: true,
+        form: {
+          client_id: process.env.DRIVE_OAUTH_CLIENT_ID,
+          client_secret: process.env.DRIVE_OAUTH_CLIENT_SECRET,
+          grant_type: 'refresh_token',
+          refresh_token: user.authorizations.drive.refreshToken
+        }
+      }, function onDriveTokensResponse (err, tokenRes, tokenData) {
+        if (tokenRes.statusCode >= 400) return cb(new Error(`Response ${tokenRes.StatusCode} received from drive`))
+        return cb(err, user, tokenData)
+      })
+    },
+    function saveDrive (user, tokenData, cb) {
+      const authorization = {
+        name: 'drive',
+        // refresh tokens are not always issued. restore the existing if not issued new
+        // see: https://developers.google.com/identity/protocols/OAuth2WebServer#offline
+        refreshToken: tokenData.refresh_token || user.authorizations.drive.refreshToken,
+        accessToken: tokenData.access_token,
+        scope: tokenData.scope,
+        userId: tokenData.user_id,
+        email: req.user.email,
+        tokenType: tokenData.token_type
+      }
+
+      User.saveAuthorization(authorization, cb)
     }
   ], function onAuthoVerifyFinish (err) {
     let flash = {
