@@ -144,11 +144,31 @@ app.post('/login', (req, res) => {
 })
 
 app.get('/home', sessionToken, (req, res) => {
-  return res.send(`
-<p>/home</p>
-<a href="/authorize/fitbit">Authorize Fitbit</a>
-<a href="/authorize/drive">Authorize Google Drive</a>
-`)
+  User.findUser(req.user, (err, user) => {
+    if (err) return res.status(500).send(err)
+    user.authorizations = user.authorizations || {}
+
+    return res.send(`
+      <p>/home</p>
+      <p>
+        Fitbit: ${user.authorizations.fitbit ? `Authorized <form action="/deauthorize/fitbit"><input type="submit" value="Delete" /></form>` : `<a href="/authorize/fitbit">Authorize</a>`}
+      </p>
+      <hr>
+      <p>
+        Drive: ${user.authorizations.drive ? `Authorized <form action="/deauthorize/drive"><input type="submit" value="Delete" /></form>` : `<a href="/authorize/drive">Authorize</a>`}
+      </p>
+        ${user.authorizations.fitbit && user.authorizations.drive
+          ? `
+            <hr>
+            <p>
+              <form action="/test-authorizations">
+                <input type="submit" value="Test Authorizations" />
+              </form>
+            </p>`
+          : ``
+        }
+    `)
+  })
 })
 
 app.get('/logout', sessionToken, (req, res) => {
