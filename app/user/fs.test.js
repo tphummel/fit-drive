@@ -14,14 +14,23 @@ tap.test('create and find new user', (t) => {
       t.ok(foundUser)
       t.equal(foundUser.email, newUser.email)
 
-      lib.deleteUser(foundUser, (err) => {
+      lib.saveAuthorization({
+        email: foundUser.email,
+        name: 'externalService'
+      }, (err, authoUser) => {
         t.ifErr(err)
 
-        lib.findUser(foundUser, (err, shouldBeEmpty) => {
-          t.ifErr(err)
-          t.notOk(shouldBeEmpty)
+        t.ok(authoUser.authorizations.externalService)
 
-          t.end()
+        lib.deleteUser(authoUser, (err) => {
+          t.ifErr(err)
+
+          lib.findUser(authoUser, (err, shouldBeEmpty) => {
+            t.ifErr(err)
+            t.notOk(shouldBeEmpty)
+
+            t.end()
+          })
         })
       })
     })
