@@ -347,14 +347,14 @@ tap.test('GET /login-verify?token=valid', function (t) {
   })
 })
 
-tap.test('GET /logout (w/ active session)', function (t) {
+tap.test('POST /logout (w/ active session)', function (t) {
   const lib = proxyquire('.', {})
 
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
     http.request({
-      method: 'GET',
+      method: 'POST',
       path: '/logout',
       port: port,
       headers: {
@@ -366,7 +366,7 @@ tap.test('GET /logout (w/ active session)', function (t) {
         )
       }
     }, (res) => {
-      t.equal(res.statusCode, 307)
+      t.equal(res.statusCode, 302)
       t.equal(res.headers.location, '/login')
 
       t.ok(res.headers['set-cookie'][0], 'a cookie was set')
@@ -428,8 +428,20 @@ tap.test('POST /settings/delete-account (w/ active session)', function (t) {
       t.equal(spies.deleteUser.callCount, 1)
       t.ok(spies.deleteUser.calledWith({email}))
       t.equal(spies.findUser.callCount, 0)
-      t.equal(res.statusCode, 307)
+      t.equal(res.statusCode, 302)
       t.equal(res.headers.location, '/')
+
+      let flashCookie
+      let sessionCookie
+      try {
+        flashCookie = cookie.parse(res.headers['set-cookie'][0])
+        sessionCookie = cookie.parse(res.headers['set-cookie'][1])
+      } catch (e) {
+        t.fail(e)
+      }
+
+      t.ok(flashCookie.flash)
+      t.equal(sessionCookie.sessionPayload, '')
 
       server.close((err) => {
         t.ifErr(err)
