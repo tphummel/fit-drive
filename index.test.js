@@ -100,7 +100,7 @@ tap.test('POST /login (existing user)', function (t) {
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
-    const email = 'tphummel@gmail.com'
+    const email = 'tphummel+test@gmail.com'
 
     get.post({
       url: url.format({
@@ -164,7 +164,7 @@ tap.test('POST /login (new user)', function (t) {
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
-    const email = 'tphummel@gmail.com'
+    const email = 'tphummel+test@gmail.com'
 
     get.post({
       url: url.format({
@@ -300,7 +300,7 @@ tap.test('GET /login-verify?token=valid', function (t) {
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
-    const email = 'tphummel@gmail.com'
+    const email = 'tphummel+test@gmail.com'
 
     // using http.request instead of simple-get
     // because i want to examine the redirect and set-cookie header
@@ -361,7 +361,7 @@ tap.test('POST /logout (w/ active session)', function (t) {
         cookie: cookie.serialize(
           'sessionPayload',
           jwt.sign({
-            email: 'tphummel@gmail.com'
+            email: 'tphummel+test@gmail.com'
           }, process.env.SESSION_JWT_SECRET)
         )
       }
@@ -410,7 +410,7 @@ tap.test('POST /settings/delete-account (w/ active session)', function (t) {
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
-    const email = 'tphummel@gmail.com'
+    const email = 'tphummel+test@gmail.com'
 
     http.request({
       method: 'POST',
@@ -458,7 +458,7 @@ tap.test('GET /authorize/fitbit (w/ active session)', function (t) {
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
-    const email = 'tphummel@gmail.com'
+    const email = 'tphummel+test@gmail.com'
 
     http.request({
       method: 'GET',
@@ -496,7 +496,7 @@ tap.test('GET /authorize/drive (w/ active session)', function (t) {
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
-    const email = 'tphummel@gmail.com'
+    const email = 'tphummel+test@gmail.com'
 
     http.request({
       method: 'GET',
@@ -563,7 +563,7 @@ tap.test('GET /authorize-verify/drive (w/ active session)', function (t) {
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
-    const email = 'tphummel@gmail.com'
+    const email = 'tphummel+test@gmail.com'
     const driveAuthoCode = 'autho-code-from-google'
 
     http.request({
@@ -622,7 +622,7 @@ tap.test('GET /home (with active session)', function (t) {
   const server = lib.start(lib.app, port, (err) => {
     t.ifErr(err)
 
-    const email = 'tphummel@gmail.com'
+    const email = 'tphummel+test@gmail.com'
 
     get.get({
       url: url.format({
