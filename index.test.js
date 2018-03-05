@@ -690,3 +690,61 @@ tap.test('GET /home (without active session)', function (t) {
     })
   })
 })
+
+tap.test('GET /home (with active session and flash message)', function (t) {
+  const spies = {
+    findUser: sinon.spy(({email}, cb) => {
+      return setImmediate(cb, null, {
+        email: email
+      })
+    })
+  }
+
+  const lib = proxyquire('.', {
+    './app/user': {
+      findUser: spies.findUser
+    }
+  })
+
+  const server = lib.start(lib.app, port, (err) => {
+    t.ifErr(err)
+
+    const email = 'tphummel+test@gmail.com'
+    const flashMessage = {type: 'success', message: 'all good!'}
+
+    get.concat({
+      method: 'GET',
+      url: url.format({
+        protocol: 'http',
+        hostname: 'localhost',
+        pathname: 'home',
+        port: port
+      }),
+      headers: {
+        cookie: [
+          cookie.serialize(
+            'sessionPayload',
+            jwt.sign({
+              email
+            }, process.env.SESSION_JWT_SECRET)
+          ),
+          cookie.serialize(
+            'flash',
+            `j:${JSON.stringify(flashMessage)}`
+          )
+        ].join(';')
+      }
+    }, (err, res, body) => {
+      t.ifErr(err)
+      const htmlDoc = body.toString()
+
+      t.match(htmlDoc, /success: all good!/,
+        'the flash message appears in the returned html in expected format')
+
+      server.close((err) => {
+        t.ifErr(err)
+        t.end()
+      })
+    })
+  })
+})
