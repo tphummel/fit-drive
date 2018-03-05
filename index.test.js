@@ -652,3 +652,41 @@ tap.test('GET /home (with active session)', function (t) {
     })
   })
 })
+
+tap.test('GET /home (without active session)', function (t) {
+  const spies = {
+    findUser: sinon.spy(({email}, cb) => {
+      return setImmediate(cb, null, {
+        email: email
+      })
+    })
+  }
+
+  const lib = proxyquire('.', {
+    './app/user': {
+      findUser: spies.findUser
+    }
+  })
+
+  const server = lib.start(lib.app, port, (err) => {
+    t.ifErr(err)
+
+    get.get({
+      url: url.format({
+        protocol: 'http',
+        hostname: 'localhost',
+        pathname: 'home',
+        port: port
+      })
+    }, (err, res) => {
+      t.ifErr(err)
+
+      t.equal(res.statusCode, 401)
+
+      server.close((err) => {
+        t.ifErr(err)
+        t.end()
+      })
+    })
+  })
+})
