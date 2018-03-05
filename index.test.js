@@ -603,3 +603,52 @@ tap.test('GET /authorize-verify/drive (w/ active session)', function (t) {
     }).end()
   })
 })
+
+tap.test('GET /home (with active session)', function (t) {
+  const spies = {
+    findUser: sinon.spy(({email}, cb) => {
+      return setImmediate(cb, null, {
+        email: email
+      })
+    })
+  }
+
+  const lib = proxyquire('.', {
+    './app/user': {
+      findUser: spies.findUser
+    }
+  })
+
+  const server = lib.start(lib.app, port, (err) => {
+    t.ifErr(err)
+
+    const email = 'tphummel@gmail.com'
+
+    get.get({
+      url: url.format({
+        protocol: 'http',
+        hostname: 'localhost',
+        pathname: 'home',
+        port: port
+      }),
+      headers: {
+        cookie: cookie.serialize(
+          'sessionPayload',
+          jwt.sign({
+            email: email
+          }, process.env.SESSION_JWT_SECRET)
+        )
+      }
+    }, (err, res) => {
+      t.ifErr(err)
+
+      t.equal(res.statusCode, 200)
+      t.equal(spies.findUser.callCount, 1)
+
+      server.close((err) => {
+        t.ifErr(err)
+        t.end()
+      })
+    })
+  })
+})
