@@ -93,8 +93,8 @@ const sessionToken = expressJwt({
 app.get('/', (req, res) => {
   return res.status(200).send(`
 ${res.locals.flash
-  ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
-  : ``
+    ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
+    : ``
 }
 <p>/</p>
 <a href="/login">login</a>
@@ -104,8 +104,8 @@ ${res.locals.flash
 app.get('/login', (req, res) => {
   return res.status(200).send(`
 ${res.locals.flash
-  ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
-  : ``
+    ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
+    : ``
 }
 <p>/login</p>
 <form action="" method="post">
@@ -175,9 +175,9 @@ app.get('/home', sessionToken, (req, res) => {
 
     return res.send(`
       ${res.locals.flash
-        ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
-        : ``
-      }
+    ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
+    : ``
+}
       <p>/home</p>
       <p>logged in as: ${user.email}</p>
       <p><form method="post" action="/logout"><input type="submit" value="Logout" /></form></p>
@@ -189,15 +189,15 @@ app.get('/home', sessionToken, (req, res) => {
         Drive: ${user.authorizations.drive ? `Authorized <form method="post" action="/deauthorize/drive"><input type="submit" value="Delete" /></form>` : `<a href="/authorize/drive">Authorize</a>`}
       </p>
         ${user.authorizations.fitbit && user.authorizations.drive
-          ? `
+    ? `
             <hr>
             <p>
               <form action="/authorizations-test" method="post">
                 <input type="submit" value="Test Authorizations" />
               </form>
             </p>`
-          : ``
-        }
+    : ``
+}
       <hr>
       <p><form method="post" action="/settings/delete-account"><input type="submit" value="Delete Account" /></form></p>
     `)
