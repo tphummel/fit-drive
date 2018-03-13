@@ -8,9 +8,9 @@ User.findUser({email: process.env.EMAIL}, (err, user) => {
   console.log(user)
 
   // function refreshToken (url, refreshToken, cb) {
-    // get a new refresh and access token for url.
-    // save user with new access token
-    // pass new access token to callback
+  // get a new refresh and access token for url.
+  // save user with new access token
+  // pass new access token to callback
   // }
 
   // const refreshFns = Object.keys(user.authorizations).map(function (name) {
@@ -18,9 +18,9 @@ User.findUser({email: process.env.EMAIL}, (err, user) => {
   // })
 
   // runParallel(refreshFns, function (err, results) {
-    // i now have saved refresh tokens
-    // i now have new access tokens
+  // i now have saved refresh tokens
+  // i now have new access tokens
 
-    // do work with access tokens
+  // do work with access tokens
   // })
 })
