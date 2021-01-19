@@ -18,7 +18,7 @@ tap.test('fitbit authorizeVerify (400 no querystring)', function (t) {
     // missing 'query'
   }
 
-  let res = {
+  const res = {
     headers: {},
     set: sinon.spy(),
     status: sinon.spy(() => {
@@ -55,7 +55,7 @@ tap.test('fitbit authorizeVerify (400 no code in querystring)', function (t) {
     }
   }
 
-  let res = {
+  const res = {
     headers: {},
     set: sinon.spy(),
     status: sinon.spy(() => {
@@ -97,7 +97,7 @@ tap.test('fitbit authorizeVerify (w/ active session)', function (t) {
     }),
     sgConcat: sinon.spy((opts, cb) => {
       const mockErr = null
-      const mockRes = {statusCode: 200}
+      const mockRes = { statusCode: 200 }
 
       return setImmediate(cb, mockErr, mockRes, mockResBodyParsed)
     })
@@ -124,7 +124,7 @@ tap.test('fitbit authorizeVerify (w/ active session)', function (t) {
     }
   }
 
-  let res = {
+  const res = {
     headers: {},
     set: sinon.spy(),
     status: sinon.spy(() => {

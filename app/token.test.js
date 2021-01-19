@@ -9,7 +9,7 @@ tap.test('createLoginToken', function (t) {
 
   process.env.LOGIN_JWT_SECRET = 'tokenUnitTest1'
 
-  lib.createLoginToken({email}, (err, token) => {
+  lib.createLoginToken({ email }, (err, token) => {
     t.ifErr(err)
 
     jwt.verify(token, process.env.LOGIN_JWT_SECRET, (err, payload) => {
@@ -27,7 +27,7 @@ tap.test('createSessionToken', function (t) {
 
   process.env.SESSION_JWT_SECRET = 'tokenUnitTest2'
 
-  lib.createSessionToken({email}, (err, token) => {
+  lib.createSessionToken({ email }, (err, token) => {
     t.ifErr(err)
 
     jwt.verify(token, process.env.SESSION_JWT_SECRET, (err, payload) => {

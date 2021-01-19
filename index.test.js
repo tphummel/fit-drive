@@ -74,13 +74,13 @@ tap.test('POST /login (existing user)', function (t) {
   const Token = require('./app/token')
 
   const spies = {
-    findUser: sinon.spy(({email}, cb) => {
+    findUser: sinon.spy(({ email }, cb) => {
       return setImmediate(cb, null, {
         email: email
       })
     }),
     createUser: sinon.spy(),
-    sendLoginEmail: sinon.spy(({email}, cb) => {
+    sendLoginEmail: sinon.spy(({ email }, cb) => {
       return setImmediate(cb, null, {})
     })
   }
@@ -116,9 +116,9 @@ tap.test('POST /login (existing user)', function (t) {
       t.ifErr(err)
 
       t.equal(spies.findUser.callCount, 1)
-      t.ok(spies.findUser.calledWith({email}))
+      t.ok(spies.findUser.calledWith({ email }))
       t.equal(Token.createLoginToken.callCount, 1)
-      t.ok(Token.createLoginToken.calledWith({email}))
+      t.ok(Token.createLoginToken.calledWith({ email }))
       t.equal(spies.createUser.callCount, 0)
       t.equal(spies.sendLoginEmail.callCount, 1)
 
@@ -136,15 +136,15 @@ tap.test('POST /login (new user)', function (t) {
   const Token = require('./app/token')
 
   const spies = {
-    findUser: sinon.spy(({email}, cb) => {
+    findUser: sinon.spy(({ email }, cb) => {
       return setImmediate(cb, null, null)
     }),
-    createUser: sinon.spy(({email}, cb) => {
+    createUser: sinon.spy(({ email }, cb) => {
       return setImmediate(cb, null, {
         email: email
       })
     }),
-    sendLoginEmail: sinon.spy(({email}, cb) => {
+    sendLoginEmail: sinon.spy(({ email }, cb) => {
       return setImmediate(cb, null, {})
     })
   }
@@ -180,11 +180,11 @@ tap.test('POST /login (new user)', function (t) {
       t.ifErr(err)
 
       t.equal(spies.findUser.callCount, 1)
-      t.ok(spies.findUser.calledWith({email}))
+      t.ok(spies.findUser.calledWith({ email }))
       t.equal(spies.createUser.callCount, 1)
-      t.ok(spies.createUser.calledWith({email}))
+      t.ok(spies.createUser.calledWith({ email }))
       t.equal(Token.createLoginToken.callCount, 1)
-      t.ok(Token.createLoginToken.calledWith({email}))
+      t.ok(Token.createLoginToken.calledWith({ email }))
       t.equal(spies.sendLoginEmail.callCount, 1)
 
       t.equal(res.statusCode, 202)
@@ -394,7 +394,7 @@ tap.test('POST /logout (w/ active session)', function (t) {
 
 tap.test('POST /settings/delete-account (w/ active session)', function (t) {
   const spies = {
-    deleteUser: sinon.spy(({email}, cb) => {
+    deleteUser: sinon.spy(({ email }, cb) => {
       return setImmediate(cb, null)
     }),
     findUser: sinon.spy()
@@ -426,7 +426,7 @@ tap.test('POST /settings/delete-account (w/ active session)', function (t) {
       }
     }, (res) => {
       t.equal(spies.deleteUser.callCount, 1)
-      t.ok(spies.deleteUser.calledWith({email}))
+      t.ok(spies.deleteUser.calledWith({ email }))
       t.equal(spies.findUser.callCount, 0)
       t.equal(res.statusCode, 302)
       t.equal(res.headers.location, '/')
@@ -474,12 +474,11 @@ tap.test('GET /authorize/fitbit (w/ active session)', function (t) {
       }
     }, (res) => {
       t.equal(res.statusCode, 302)
-      const parseQueryString = true
-      const redirectUrl = url.parse(res.headers.location, parseQueryString)
+      const redirectUrl = new url.URL(res.headers.location)
 
       t.equal(redirectUrl.hostname, 'www.fitbit.com')
       t.equal(redirectUrl.pathname, '/oauth2/authorize')
-      t.equal(redirectUrl.query.client_id, process.env.FITBIT_OAUTH_CLIENT_ID)
+      t.equal(redirectUrl.searchParams.get('client_id'), process.env.FITBIT_OAUTH_CLIENT_ID)
 
       server.close((err) => {
         t.ifErr(err)
@@ -512,12 +511,11 @@ tap.test('GET /authorize/drive (w/ active session)', function (t) {
       }
     }, (res) => {
       t.equal(res.statusCode, 302)
-      const parseQueryString = true
-      const redirectUrl = url.parse(res.headers.location, parseQueryString)
+      const redirectUrl = new url.URL(res.headers.location)
 
       t.equal(redirectUrl.hostname, 'accounts.google.com')
       t.equal(redirectUrl.pathname, '/o/oauth2/v2/auth')
-      t.equal(redirectUrl.query.client_id, process.env.DRIVE_OAUTH_CLIENT_ID)
+      t.equal(redirectUrl.searchParams.get('client_id'), process.env.DRIVE_OAUTH_CLIENT_ID)
 
       server.close((err) => {
         t.ifErr(err)
@@ -545,7 +543,7 @@ tap.test('GET /authorize-verify/drive (w/ active session)', function (t) {
     }),
     sgConcat: sinon.spy((opts, cb) => {
       const mockErr = null
-      const mockRes = {statusCode: 200}
+      const mockRes = { statusCode: 200 }
 
       return setImmediate(cb, mockErr, mockRes, mockResBodyParsed)
     })
@@ -606,7 +604,7 @@ tap.test('GET /authorize-verify/drive (w/ active session)', function (t) {
 
 tap.test('GET /home (with active session)', function (t) {
   const spies = {
-    findUser: sinon.spy(({email}, cb) => {
+    findUser: sinon.spy(({ email }, cb) => {
       return setImmediate(cb, null, {
         email: email
       })
@@ -655,7 +653,7 @@ tap.test('GET /home (with active session)', function (t) {
 
 tap.test('GET /home (without active session)', function (t) {
   const spies = {
-    findUser: sinon.spy(({email}, cb) => {
+    findUser: sinon.spy(({ email }, cb) => {
       return setImmediate(cb, null, {
         email: email
       })
@@ -693,7 +691,7 @@ tap.test('GET /home (without active session)', function (t) {
 
 tap.test('GET /home (with active session and flash message)', function (t) {
   const spies = {
-    findUser: sinon.spy(({email}, cb) => {
+    findUser: sinon.spy(({ email }, cb) => {
       return setImmediate(cb, null, {
         email: email
       })
@@ -710,7 +708,7 @@ tap.test('GET /home (with active session and flash message)', function (t) {
     t.ifErr(err)
 
     const email = 'tphummel+test@gmail.com'
-    const flashMessage = {type: 'success', message: 'all good!'}
+    const flashMessage = { type: 'success', message: 'all good!' }
 
     get.concat({
       method: 'GET',
