@@ -1,34 +1,23 @@
-# node.js base app
+# fit drive
 
-```
-git clone https://github.com/tphummel/node-app.git new-app-dir
-cd !$
-rm -rf .git
-git init
-git add . -am "inital commit"
-git remote add ...
-git push -u origin master
-```
+A service to download your files from [fitbit](https://fitbit.com) and put them in [google drive](https://drive.google.com).
 
-
-# node-app
-
-[![Build Status](https://travis-ci.org/tphummel/node-app.png)](https://travis-ci.org/tphummel/node-app)[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-
-[![NPM](https://nodei.co/npm/node-app.png?downloads=true)](https://nodei.co/npm/node-app/)
+[![Build Status](https://travis-ci.com/tphummel/fit-drive.png)](https://travis-ci.com/tphummel/fit-drive) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 # install
 
 ```
-npm install {{app}}
+npm install
 ```
 
 # test
-
-💯 enforced
 
 ```
 npm test
 ```
 
 # usage
+
+```
+DB_MODE=fs FITBIT_OAUTH_CLIENT_SECRET= FITBIT_OAUTH_CLIENT_ID= DRIVE_OAUTH_CLIENT_ID=".apps.googleusercontent.com" DRIVE_OAUTH_CLIENT_SECRET="" LOGIN_JWT_SECRET= SESSION_JWT_SECRET= node index
+```
