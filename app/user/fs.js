@@ -19,7 +19,7 @@ function initDb (cb) {
   })
 }
 
-function findUser ({email}, cb) {
+function findUser ({ email }, cb) {
   initDb((err) => {
     if (err) return cb(err)
     fs.readFile(path.resolve(dbPath, email), {}, (err, data) => {
@@ -46,7 +46,7 @@ function createUser (user, cb) {
 }
 
 function saveAuthorization (opts, cb) {
-  findUser({email: opts.email}, (err, user) => {
+  findUser({ email: opts.email }, (err, user) => {
     if (err) return cb(err)
     if (!user) return cb(new Error('trying to save authorization. user not found'))
 
@@ -57,7 +57,7 @@ function saveAuthorization (opts, cb) {
   })
 }
 
-function deleteUser ({email}, cb) {
+function deleteUser ({ email }, cb) {
   fs.unlink(path.resolve(dbPath, email), cb)
 }
 

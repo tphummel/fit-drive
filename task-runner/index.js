@@ -2,7 +2,7 @@
 
 const User = require('../app/user')
 
-User.findUser({email: process.env.EMAIL}, (err, user) => {
+User.findUser({ email: process.env.EMAIL }, (err, user) => {
   if (err) console.error(err)
 
   console.log(user)

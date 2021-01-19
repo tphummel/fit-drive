@@ -2,7 +2,7 @@
 
 const jwt = require('jsonwebtoken')
 
-function createLoginToken ({email}, cb) {
+function createLoginToken ({ email }, cb) {
   return jwt.sign({
     email
   }, process.env.LOGIN_JWT_SECRET, {
@@ -10,7 +10,7 @@ function createLoginToken ({email}, cb) {
   }, cb)
 }
 
-function createSessionToken ({email}, cb) {
+function createSessionToken ({ email }, cb) {
   return jwt.sign({
     email
   }, process.env.SESSION_JWT_SECRET, {

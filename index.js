@@ -51,7 +51,7 @@ const Fitbit = require('./app/fitbit')
 const app = express()
 module.exports = app
 
-app.use(require('body-parser').urlencoded({extended: true}))
+app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('cookie-parser')())
 
 // custom flash middlware: https://gist.github.com/brianmacarthur/a4e3e0093d368aa8e423
@@ -94,7 +94,7 @@ app.get('/', (req, res) => {
   return res.status(200).send(`
 ${res.locals.flash
     ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
-    : ``
+    : ''
 }
 <p>/</p>
 <a href="/login">login</a>
@@ -105,7 +105,7 @@ app.get('/login', (req, res) => {
   return res.status(200).send(`
 ${res.locals.flash
     ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
-    : ``
+    : ''
 }
 <p>/login</p>
 <form action="" method="post">
@@ -116,7 +116,7 @@ ${res.locals.flash
 })
 
 app.get('/login-verify', loginToken, (req, res) => {
-  Token.createSessionToken({email: req.loginToken.email}, (err, token) => {
+  Token.createSessionToken({ email: req.loginToken.email }, (err, token) => {
     if (err) return res.status(500).send(err)
 
     res.cookie('sessionPayload', token)
@@ -135,28 +135,30 @@ app.post('/login', (req, res) => {
 
   waterfall([
     function findExistingUser (cb) {
-      User.findUser({email: inputEmail}, function (err, user) {
-        return cb(err, {user})
+      User.findUser({ email: inputEmail }, function (err, user) {
+        return cb(err, { user })
       })
     },
-    function createUserIfNotFound ({user}, cb) {
-      if (user) return setImmediate(cb, null, {user})
+    function createUserIfNotFound ({ user }, cb) {
+      if (user) return setImmediate(cb, null, { user })
 
-      User.createUser({email: inputEmail}, function (err, user) {
-        return cb(err, {user})
+      User.createUser({ email: inputEmail }, function (err, user) {
+        return cb(err, { user })
       })
     },
-    function createLoginTokenForUser ({user}, cb) {
-      Token.createLoginToken({email: user.email}, (err, token) => {
-        return cb(err, {user, token})
+    function createLoginTokenForUser ({ user }, cb) {
+      Token.createLoginToken({ email: user.email }, (err, token) => {
+        return cb(err, { user, token })
       })
     },
-    function sendLoginEmailToUser ({user, token}, cb) {
-      Email.sendLoginEmail({user, token}, (err) => {
-        return cb(err, {user})
+    function sendLoginEmailToUser ({ user, token }, cb) {
+      Email.sendLoginEmail({ user, token }, (err) => {
+        return cb(err, { user })
       })
     }
-  ], function (err, {user}) {
+  ], function (err, { user }) {
+    if (err) console.log('err on post /login ', err)
+
     if (err) return res.status(500).send(err)
 
     return res.status(202).send('login request received')
@@ -176,17 +178,17 @@ app.get('/home', sessionToken, (req, res) => {
     return res.send(`
       ${res.locals.flash
     ? `<p>${res.locals.flash.type}: ${res.locals.flash.message}</p>`
-    : ``
+    : ''
 }
       <p>/home</p>
       <p>logged in as: ${user.email}</p>
       <p><form method="post" action="/logout"><input type="submit" value="Logout" /></form></p>
       <p>
-        Fitbit: ${user.authorizations.fitbit ? `Authorized <form method="post" action="/deauthorize/fitbit"><input type="submit" value="Delete" /></form>` : `<a href="/authorize/fitbit">Authorize</a>`}
+        Fitbit: ${user.authorizations.fitbit ? 'Authorized <form method="post" action="/deauthorize/fitbit"><input type="submit" value="Delete" /></form>' : '<a href="/authorize/fitbit">Authorize</a>'}
       </p>
       <hr>
       <p>
-        Drive: ${user.authorizations.drive ? `Authorized <form method="post" action="/deauthorize/drive"><input type="submit" value="Delete" /></form>` : `<a href="/authorize/drive">Authorize</a>`}
+        Drive: ${user.authorizations.drive ? 'Authorized <form method="post" action="/deauthorize/drive"><input type="submit" value="Delete" /></form>' : '<a href="/authorize/drive">Authorize</a>'}
       </p>
         ${user.authorizations.fitbit && user.authorizations.drive
     ? `
@@ -196,7 +198,7 @@ app.get('/home', sessionToken, (req, res) => {
                 <input type="submit" value="Test Authorizations" />
               </form>
             </p>`
-    : ``
+    : ''
 }
       <hr>
       <p><form method="post" action="/settings/delete-account"><input type="submit" value="Delete Account" /></form></p>
@@ -292,7 +294,7 @@ app.post('/authorizations-test', sessionToken, (req, res) => {
       User.saveAuthorization(authorization, cb)
     }
   ], function onAuthoVerifyFinish (err) {
-    let flash = {
+    const flash = {
       at: new Date()
     }
 
@@ -323,7 +325,7 @@ app.post('/logout', sessionToken, (req, res) => {
 })
 
 app.post('/settings/delete-account', sessionToken, (req, res) => {
-  User.deleteUser({email: req.user.email}, (err) => {
+  User.deleteUser({ email: req.user.email }, (err) => {
     if (err) return res.status(500).send(err)
 
     res.cookie('flash', {
